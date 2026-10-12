@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>青空リーダー</title>
 <meta name="theme-color" content="#2F4B6E">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,7 +18,7 @@
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141618;--ink:#D8DADC;--sub:#80868C;--line:#2A2E31;--ac:#8FB0D6;--surf:#1E2124}}
 :root[data-theme="dark"]{--bg:#141618;--ink:#D8DADC;--sub:#80868C;--line:#2A2E31;--ac:#8FB0D6;--surf:#1E2124}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--ink)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font:15px/1.6 "Hiragino Sans","Yu Gothic",system-ui,sans-serif}
@@ -69,6 +69,9 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
 .hp .ck,.hs .ck{display:flex;flex-direction:column;justify-content:center}.hp .ck{min-height:100%}
 .hp .ck+.ck{-webkit-column-break-before:always;break-before:column}
 .num{display:flex;align-items:center;gap:8px}.num input{width:80px;font:inherit;color:inherit;background:none;border:0;border-bottom:1px solid var(--line);padding:6px 0;text-align:right;border-radius:0}.num b{font-weight:400}
+.sw{display:block;position:relative;overflow:hidden}
+.si{display:flex;flex-wrap:wrap;align-items:center;background:var(--bg);position:relative;touch-action:pan-y}.si.an{transition:transform .2s}
+.dl{position:absolute;inset:0;background:#D64545;color:#fff;display:flex;align-items:center;justify-content:flex-end;padding-right:26px}.dl .ms{font-size:26px}
 .mr{display:block;width:100%;padding:16px 0;color:var(--ac);font-size:13px}.lk{color:var(--ac);margin-left:8px;font-size:13px}
 #cols p.hd{font-weight:600;text-indent:0;margin-block-start:var(--lh,2em)}#cols em{font-style:normal;text-emphasis:filled sesame}
 .hint{display:block;margin-top:10px;font-size:11px;line-height:1.5;color:var(--sub)}
@@ -88,6 +91,7 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
 #rib{position:absolute;top:0;right:24px;width:10px;height:24px;background:var(--ac);display:none;z-index:2}
 #rd.bmk #rib{display:block}
 @media(prefers-reduced-motion:reduce){#rbar{transition:none}}
+#q,.num input{font-size:16px}
 </style>
 </head>
 <body>
@@ -107,12 +111,12 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
   <div id="fsp"><span>小</span><input id="fsr" type="range" min="14" max="30" step="1"><span>大</span></div>
 </section>
 <script>
-let BOOKS=[],BYA=[],IDX=new Map(),CAT='idle',LIM=100;
+let BOOKS=[],BYA=[],IDX=new Map(),CAT='idle',LIM=100,POP=[];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
 const K='aozora:v2',$=s=>document.querySelector(s);
-let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,Z='',sw=0,sx=null,sy=0;
+let S=load(),tab='s',mode='a',q='',kn='',fo=0,so='k',sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{},m:[]}}
 function save(){try{for(const k in S.b)if(!Object.keys(S.b[k]).length)delete S.b[k];localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
 function theme(){const r=document.documentElement;if(S.th==='auto')delete r.dataset.theme;else r.dataset.theme=S.th}
@@ -141,19 +145,21 @@ function parseAozora(t){
 const sm=()=>S.wm==='h'&&S.vw==='s';
 const ratio=()=>sm()?(MX>0?$('#clip').scrollTop/MX:0):(tot>1?pg/(tot-1):0);
 
-function row(b,extra,bms){const s=B(b.id);
-  return `<li><button class="row" data-open="${b.id}"><span class="t m">${esc(b.t)}</span><span class="a">${esc(b.a)}</span>${extra||''}</button>
-  <button class="lt ${s.later?'on':''}" data-later="${b.id}" aria-label="積読" aria-pressed="${!!s.later}"><span class="ms" aria-hidden="true">bookmark</span></button><button class="lt fv ${s.fav?'on':''}" data-fav="${b.id}" aria-label="お気に入り" aria-pressed="${!!s.fav}"><span class="ms" aria-hidden="true">star</span></button>${bms||''}</li>`}
+function row(b,extra,bms,rm){const s=B(b.id),h=`<button class="row" data-open="${b.id}"><span class="t m">${esc(b.t)}</span><span class="a">${esc(b.a)}</span>${extra||''}</button>
+  <button class="lt ${s.later?'on':''}" data-later="${b.id}" aria-label="積読" aria-pressed="${!!s.later}"><span class="ms" aria-hidden="true">bookmark</span></button><button class="lt fv ${s.fav?'on':''}" data-fav="${b.id}" aria-label="お気に入り" aria-pressed="${!!s.fav}"><span class="ms" aria-hidden="true">star</span></button>${bms||''}`;
+  return rm?`<li class="sw" data-rm="${b.id}"><div class="dl" data-rmb="${b.id}"><span class="ms" aria-hidden="true">delete</span></div><div class="si">${h}</div></li>`:`<li>${h}</li>`}
+function rmBook(id){const s=B(id);delete s.t;s.pos=0;save();render()}
 const bmh=id=>{const r=S.m.filter(m=>m.id===id).sort((x,y)=>x.pos-y.pos);
   return r.length?`<div class="bms">${r.map(m=>`<span><button data-open="${id}" data-pos="${m.pos}">栞 ${Math.round(m.pos*100)}%</button><button class="x" data-del="${m.at}" aria-label="栞を外す">×</button></span>`).join('')}</div>`:''};
 function list(){
   if(CAT==='idle'||CAT==='load')return '<p class="empty">作品一覧を読み込み中…</p>';
   if(CAT==='err')return '<p class="empty">作品一覧を読み込めませんでした。<button class="lk" data-retry="1">もう一度試す</button></p>';
-  const k=q.trim(),ky=b=>mode==='a'?ra(b):rt(b),src=mode==='a'?BYA:BOOKS,
+  const k=q.trim(),ky=b=>mode==='a'?ra(b):rt(b),src=so==='p'&&POP.length?POP:mode==='a'?BYA:BOOKS,
   r=src.filter(b=>(!k||((mode==='a'?b.a:b.t)+ky(b)).includes(k))&&(!kn||ROWS[kn].includes(ky(b)[0])));
   return r.length?`<ul>${r.slice(0,LIM).map(b=>row(b)).join('')}</ul>${r.length>LIM?`<button class="mr" data-more="1">さらに表示(残り${r.length-LIM}件)</button>`:''}`:`<p class="empty">${k?`「${k}」`:kn+'行'}に当てはまる${mode==='a'?'作者':'作品'}はありません。</p>`}
-const MD=()=>`<div class="md"><button class="bg" data-fo="0" aria-label="閉じる"></button><div class="sh" role="dialog" aria-modal="true" aria-label="行で絞り込む"><div class="mh"><span>行で絞り込む</span><button data-fo="0">閉じる</button></div><div class="kn">${Object.keys(ROWS).map(c=>`<button data-kn="${c}" class="${kn===c?'on':''}">${c}行</button>`).join('')}</div>${kn?'<button class="cl" data-kc="1">絞り込みを解除</button>':''}</div></div>`;
-function vs(){return `<div class="hd"><h3 class="m">検索</h3><div class="qb"><input id="q" value="${q}" placeholder="${mode==='a'?'作者名':'作品名'}" autocomplete="off"><button class="tn ${kn?'on':''}" data-fo="1" aria-label="行で絞り込む" aria-expanded="${!!fo}"><span class="ms" aria-hidden="true">tune</span></button></div></div>
+const SO=()=>POP.length?`<div class="seg so"><button data-so="k" class="${so==='k'?'on':''}">五十音順</button><button data-so="p" class="${so==='p'?'on':''}">人気順</button></div>`:'';
+const MD=()=>`<div class="md"><button class="bg" data-fo="0" aria-label="閉じる"></button><div class="sh" role="dialog" aria-modal="true" aria-label="行で絞り込む"><div class="mh"><span>絞り込み・並び替え</span><button data-fo="0">閉じる</button></div>${SO()}<div class="kn">${Object.keys(ROWS).map(c=>`<button data-kn="${c}" class="${kn===c?'on':''}">${c}行</button>`).join('')}</div>${kn?'<button class="cl" data-kc="1">絞り込みを解除</button>':''}</div></div>`;
+function vs(){return `<div class="hd"><h3 class="m">検索</h3><div class="qb"><input id="q" value="${q}" placeholder="${mode==='a'?'作者名':'作品名'}" autocomplete="off"><button class="tn ${kn||so==='p'?'on':''}" data-fo="1" aria-label="行で絞り込む" aria-expanded="${!!fo}"><span class="ms" aria-hidden="true">tune</span></button></div></div>
   <div class="seg"><button data-mode="a" class="${mode==='a'?'on':''}">作者</button><button data-mode="t" class="${mode==='t'?'on':''}">作品名</button><span class="lg" aria-hidden="true"><span>あとで読む</span><span>お気に入り</span></span></div>
   <div id="list">${list()}</div>${fo?MD():''}`}
 function vh(){
@@ -161,7 +167,7 @@ function vh(){
   const r=Object.keys(S.b).map(bk).filter(Boolean).filter(f[sh]).sort((x,y)=>(B(y.id).t||0)-(B(x.id).t||0));
   const msg={r:'読みかけの本はありません。「検索」で作品を開くと、ここに並びます。栞もここにまとまります。',l:'積読の本はありません。作品の「積読」を押すと追加されます。',d:'読了した本はありません。読書中のメニューから「読了」にできます。',f:'お気に入りの本はありません。作品の星マークを押すと追加されます。'};
   return `<h3 class="m">本棚</h3><div class="seg">${[['r','読書中'],['l',TD()],['d','読了'],['f','お気に入り']].map(([k,n])=>`<button data-sh="${k}" class="${sh===k?'on':''}">${n}</button>`).join('')}</div>`+
-  (r.length?`<ul>${r.map(b=>row(b,'',sh==='r'?bmh(b.id):'')).join('')}</ul>`:`<p class="empty">${msg[sh]}</p>`)}
+  (r.length?`<ul>${r.map(b=>row(b,'',sh==='r'?bmh(b.id):'',sh==='r')).join('')}</ul>`:`<p class="empty">${msg[sh]}</p>`)}
 function vc(){
   const sg=(key,items)=>`<div class="seg">${items.map(([k,n])=>`<button data-${key}="${k}" class="${S[key]===k?'on':''}">${n}</button>`).join('')}</div>`;
   return `<h3 class="m">設定</h3>
@@ -180,7 +186,7 @@ $('#view').addEventListener('input',e=>{const i=e.target;
   if(i.id==='q'){q=i.value;LIM=100;$('#list').innerHTML=list()}
   if(i.id==='fsc'){S.fs=+i.value;$('#fsv').textContent=S.fs;save()}
   if(i.id==='ns'){const n=Math.floor(+i.value);S.ns=n>0?Math.min(n,99):0;save()}});
-$('#view').onclick=e=>{const d=e.target.closest('button');if(!d)return;const D=d.dataset;
+$('#view').onclick=e=>{const dl=e.target.closest('.dl');if(dl){rmBook(dl.dataset.rmb);return}if(Date.now()-swd<400)return;const d=e.target.closest('button');if(!d)return;const D=d.dataset;
   if(D.open)openBook(D.open,D.pos!=null?+D.pos:null);
   else if(D.later){const s=B(D.later);s.later=!s.later;mm(D.later);save();tab==='s'?$('#list').innerHTML=list():render()}
   else if(D.fav){const s=B(D.fav);s.fav=!s.fav;mm(D.fav);save();tab==='s'?$('#list').innerHTML=list():render()}
@@ -189,6 +195,7 @@ $('#view').onclick=e=>{const d=e.target.closest('button');if(!d)return;const D=d
   else if(D.retry){loadCat()}
   else if(D.kn){kn=kn===D.kn?'':D.kn;fo=0;LIM=100;render()}
   else if(D.fo!=null){fo=+D.fo;render()}
+  else if(D.so){so=D.so;LIM=100;fo=0;render()}
   else if(D.kc){kn='';fo=0;render()}
   else if(D.sh){sh=D.sh;render()}
   else if(D.del){S.m=S.m.filter(m=>m.at!=D.del);save();render()}
@@ -231,10 +238,14 @@ async function openBook(id,pos){
     try{b.x=await loadText(b)}catch(e){if(cur===id)$('#cols').innerHTML='<p>本文を取得できませんでした。通信状況を確認して、もう一度開いてください。</p>';return}
     if(cur!==id||$('#rd').hidden)return}
   $('#cols').innerHTML=body(b);fit(pos)}
+function lines(c){
+  const fs=S.fs,rg=document.createRange(),cs=[],tw=document.createTreeWalker(c,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentNode.nodeName==='RT'||!n.nodeValue.trim()?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  for(let n;n=tw.nextNode();){rg.selectNodeContents(n);for(const r of rg.getClientRects?.()||[])if(r.width>0&&r.height>0)cs.push((r.left+r.right)/2)}
+  cs.sort((a,b)=>b-a);const L=[];for(const x of cs)if(!L.length||L[L.length-1]-x>fs*.8)L.push(x);return L}
 function sc(x){const k=$('#clip'),v=S.wm==='v';k.scrollLeft=v?-x:x;if(v&&x&&k.scrollLeft===0)k.scrollLeft=x}
 function fit(pos){
   const k=$('#clip'),c=$('#cols'),rw=$('#rd').clientWidth,lh=Math.round(S.fs*1.9),v=S.wm==='v',s=sm();
-  k.className=v?'v':s?'hs':'hp';k.scrollTop=0;k.scrollLeft=0;c.style.paddingLeft='';c.style.columnWidth='';
+  OFF=null;PW=null;k.className=v?'v':s?'hs':'hp';k.scrollTop=0;k.scrollLeft=0;c.style.paddingLeft='';c.style.columnWidth='';
   if(v){const n=Math.max(1,Math.floor((rw-48)/lh));W=n*lh;k.style.cssText='width:'+W+'px;left:'+(rw-W)/2+'px'}
   else if(s){k.style.cssText='left:0;right:0';c.querySelectorAll('.ck').forEach(e=>e.style.minHeight=(k.clientHeight-52)+'px')}
   else{const cw=rw-48;W=cw+40;k.style.cssText='width:'+cw+'px;left:24px';c.style.columnWidth=cw+'px'}
@@ -242,13 +253,20 @@ function fit(pos){
   requestAnimationFrame(()=>{
     if(v){const q=c.querySelectorAll('.ck');q.forEach(e=>e.style.padding='0');const ws=[...q].map(e=>e.getBoundingClientRect().width);q.forEach((e,i)=>{const sp=Math.max(0,Math.ceil(ws[i]/W-.02)*W-ws[i]),a=Math.floor(sp/2);e.style.paddingRight=a+'px';e.style.paddingLeft=(sp-a)+'px'});c.style.paddingLeft='0';const sw=k.scrollWidth,pages=Math.max(1,Math.ceil(sw/W-.02));
       c.style.paddingLeft=Math.max(0,pages*W-sw)+'px';
-      MX=Math.max(0,k.scrollWidth-k.clientWidth);tot=Math.max(1,Math.round(MX/W)+1)}
+      MX=Math.max(0,k.scrollWidth-k.clientWidth);tot=Math.max(1,Math.round(MX/W)+1);
+      if(!q.length){const L=lines(c),lh=Math.round(S.fs*1.9);let dr=false;
+        for(let i=1;i<L.length;i++){let d=(L[i-1]-L[i])%lh;d=Math.min(d,lh-d);if(d>.75){dr=true;break}}
+        if(dr){const R=k.getBoundingClientRect().right,fs=S.fs;OFF=[0];PW=[];let st=R,j=0;
+          while(j<L.length){let e=j;while(e<L.length&&L[e]-fs*.5>=st-W)e++;if(e===j)e=j+1;PW.push(Math.min(W,st-(L[e-1]-fs*.7)));if(e>=L.length)break;st=L[e]+fs*1.2;OFF.push(R-st);j=e}
+          tot=PW.length;const need=OFF[tot-1]+W;if(k.scrollWidth<need)c.style.paddingLeft=(parseFloat(c.style.paddingLeft)||0)+need-k.scrollWidth+'px'}}}
     else if(s){W=Math.max(1,k.clientHeight);MX=Math.max(0,k.scrollHeight-k.clientHeight);tot=Math.max(1,Math.ceil(MX/W-.02)+1)}
     else{MX=Math.max(0,k.scrollWidth-k.clientWidth);tot=Math.max(1,Math.round(MX/W)+1)}
     if(s){k.scrollTop=pos*MX;pg=Math.max(0,Math.min(tot-1,Math.round(k.scrollTop/W)));upd()}
     else go(Math.round(pos*(tot-1)))})}
 function go(p){
-  pg=Math.max(0,Math.min(tot-1,p));if(sm())$('#clip').scrollTop=Math.min(pg*W,MX);else sc(Math.min(pg*W,MX));
+  pg=Math.max(0,Math.min(tot-1,p));if(sm())$('#clip').scrollTop=Math.min(pg*W,MX);
+  else if(S.wm==='v'&&OFF){const k=$('#clip'),w=Math.max(20,PW[pg]||W);k.style.width=w+'px';k.style.left=($('#rd').clientWidth-w)/2+'px';sc(OFF[pg])}
+  else sc(Math.min(pg*W,MX));
   upd()}
 function upd(){$('#pn').textContent=sm()?'':`${pg+1}/${tot}`;B(cur).pos=ratio();save();mark()}
 function marked(){return S.m.some(m=>m.id===cur&&Math.round(m.pos*(tot-1))===pg)}
@@ -280,13 +298,27 @@ addEventListener('keydown',e=>{if($('#rd').hidden)return;if(S.tp==='ud'){if(e.ke
 if(document.fonts)document.fonts.addEventListener('loadingdone',()=>{if(!$('#rd').hidden)fit(ratio())});
 addEventListener('keydown',e=>{if(e.key==='Escape'&&fo){fo=0;render()}});
 let st;$('#clip').addEventListener('scroll',()=>{if(!sm()||$('#rd').hidden)return;clearTimeout(st);st=setTimeout(()=>{pg=Math.max(0,Math.min(tot-1,Math.round($('#clip').scrollTop/W)));upd()},80)});
+let swp=null,swx=0;const VW=$('#view');
+VW.addEventListener('pointerdown',e=>{const si=e.target.closest('.si');if(!si||e.target.closest('.dl'))return;
+  const op=VW.querySelector('.si.op');if(op&&op!==si){op.classList.add('an');op.style.transform='';op.classList.remove('op')}
+  swp={si,x:e.clientX,y:e.clientY,on:false,w:si.parentNode.offsetWidth,base:si.classList.contains('op')?-88:0}});
+VW.addEventListener('pointermove',e=>{if(!swp)return;const dx=e.clientX-swp.x,dy=e.clientY-swp.y;
+  if(!swp.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){swp=null;return}
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){swp.on=true;swp.si.classList.remove('an');try{swp.si.setPointerCapture(e.pointerId)}catch(_){}}else return}
+  swx=Math.max(-swp.w,Math.min(0,swp.base+dx));swp.si.style.transform='translateX('+swx+'px)'});
+const swr=()=>{if(!swp)return;const{si,on,w}=swp;swp=null;if(!on)return;swd=Date.now();si.classList.add('an');
+  if(swx<-w*.5){si.style.transform='translateX(-100%)';setTimeout(()=>rmBook(si.parentNode.dataset.rm),180)}
+  else if(swx<-60){si.style.transform='translateX(-88px)';si.classList.add('op')}
+  else{si.style.transform='';si.classList.remove('op')}};
+VW.addEventListener('pointerup',swr);VW.addEventListener('pointercancel',swr);
 async function loadCat(){
   CAT='load';render();
   try{const r=await fetch('data/catalog.json');if(!r.ok)throw 0;const j=await r.json();
-    BOOKS=j.w.map(x=>({id:x[0],t:x[1],rt:x[2],a:x[3],ra:x[4],p:x[5]}));IDX=new Map(BOOKS.map(b=>[b.id,b]));BYA=j.a.map(i=>BOOKS[i]);CAT='ok'}
+    BOOKS=j.w.map(x=>({id:x[0],t:x[1],rt:x[2],a:x[3],ra:x[4],p:x[5]}));IDX=new Map(BOOKS.map(b=>[b.id,b]));BYA=j.a.map(i=>BOOKS[i]);POP=(j.p||[]).map(i=>BOOKS[i]);CAT='ok'}
   catch(e){CAT='err'}
   render()}
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
 theme();render();loadCat();
 </script>
 </body>
