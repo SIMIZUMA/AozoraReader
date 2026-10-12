@@ -1,0 +1,9 @@
+{
+  "name": "aozora-reader",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "build": "bash scripts/build-site.sh"
+  }
+}

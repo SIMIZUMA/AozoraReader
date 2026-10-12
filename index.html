@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>青空リーダー</title>
+<meta name="theme-color" content="#2F4B6E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="青空リーダー">
+<meta name="description" content="青空文庫の作品を、縦書き・横書きで読めるリーダー">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=block">
+<style>
+:root{--bg:#F3F4F1;--ink:#22252A;--sub:#7D838A;--line:#D9DCD6;--ac:#2F4B6E;--surf:#E9EBE6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141618;--ink:#D8DADC;--sub:#80868C;--line:#2A2E31;--ac:#8FB0D6;--surf:#1E2124}}
+:root[data-theme="dark"]{--bg:#141618;--ink:#D8DADC;--sub:#80868C;--line:#2A2E31;--ac:#8FB0D6;--surf:#1E2124}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font:15px/1.6 "Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.m{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif}
+#app{max-width:560px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+#view{flex:1;overflow:auto;padding:28px 24px 16px}
+h3{font-weight:600;font-size:22px;margin:0 0 20px;letter-spacing:.08em}
+.seg{display:flex;gap:20px;margin-bottom:16px}
+.seg button{color:var(--sub);padding:4px 0;border-bottom:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.seg button.on{color:var(--ink);border-color:var(--ac)}
+#q{width:100%;font:inherit;color:inherit;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 0;border-radius:0}
+.hd{margin-bottom:12px}.hd h3{margin:0 0 8px}.hd #q{flex:1;min-width:0;border-bottom:0}.qb{flex:1;min-width:0;display:flex;align-items:center;border-bottom:1px solid var(--line)}.tn{display:flex;color:var(--sub);padding:0 0 0 8px}.tn.on{color:var(--ac)}.tn .ms{font-size:22px}
+.kn{display:grid;grid-template-columns:repeat(5,1fr);text-align:center;margin:0 0 8px}.kn button{font-size:13px;color:var(--sub);padding:8px 0}.kn button.on{color:var(--ac);font-weight:600}
+.md{position:fixed;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:24px}.md .bg{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.sh{position:relative;width:100%;max-width:340px;background:var(--bg);padding:20px 20px 12px;box-shadow:0 0 0 1px var(--line)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px}.mh button,.cl{color:var(--sub);font-size:13px;padding:8px 0}.cl{display:block;width:100%;border-top:1px solid var(--line);margin-top:8px}
+ul{list-style:none;margin:8px 0 0;padding:0}
+li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line)}
+.row{flex:1;text-align:left;padding:14px 0;display:block;min-width:0}
+.t{display:block;font-size:17px}.a{display:block;font-size:12px;color:var(--sub)}
+.lt,.x{font-size:12px;color:var(--sub);padding:10px 0 10px 12px}
+.lt.on .ms{color:var(--ac);font-variation-settings:'FILL' 1}
+.lt{display:flex;align-items:center;justify-content:center;flex:none;width:56px;padding:10px 0}
+.fv{margin-right:26px}
+.lg{margin-left:auto;margin-right:26px;align-self:flex-start;padding-top:10px;display:flex;font-size:10px;line-height:1.2;color:var(--sub);pointer-events:none}.lg>span{width:56px;text-align:center;white-space:nowrap}
+.gl{font-size:9px;opacity:.7;line-height:1.2}
+.ms{font-family:'Material Symbols Outlined';font-size:26px;line-height:1;display:inline-block;width:1em;overflow:hidden;white-space:nowrap;letter-spacing:normal;font-feature-settings:'liga';-webkit-font-feature-settings:'liga';font-variation-settings:'FILL' 0}
+.bms{width:100%;display:flex;flex-wrap:wrap;gap:4px 18px;padding:0 0 12px;font-size:12px}
+.bms button{color:var(--ac)}.bms .x{padding:0 0 0 4px;color:var(--sub)}
+.set{padding:18px 0;border-bottom:1px solid var(--line)}
+.set>span{display:block;font-size:12px;color:var(--sub);margin-bottom:10px}
+.set .seg{margin:0}.set input[type=range]{width:100%;accent-color:var(--ac)}
+.empty{color:var(--sub);padding:32px 0;font-size:14px}
+#tabs{display:flex;border-top:1px solid var(--line);padding-bottom:4px}
+#tabs button{flex:1;padding:14px 0;color:var(--sub);font-size:14px;letter-spacing:.2em}
+#tabs button.on{color:var(--ac)}
+#rd{position:fixed;inset:0;max-width:560px;margin:0 auto;background:var(--bg);z-index:5;touch-action:none;user-select:none;-webkit-user-select:none}
+#rd[hidden]{display:none}
+#pb{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 32px);bottom:calc(env(safe-area-inset-bottom,0px) + 52px)}
+#clip{position:absolute;top:0;height:100%;overflow:hidden}
+#clip.v{writing-mode:vertical-rl}
+#clip.hs{overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain}
+#cols{text-align:justify;line-break:strict;text-combine-upright:digits 2}
+.v #cols,.hp #cols{height:100%}.hp #cols{width:100%;column-gap:40px;column-fill:auto}.hs #cols{padding:12px 24px 40px}
+#cols p.c{text-indent:0}
+.hp .ck,.hs .ck{display:flex;flex-direction:column;justify-content:center}.hp .ck{min-height:100%}
+.hp .ck+.ck{-webkit-column-break-before:always;break-before:column}
+.num{display:flex;align-items:center;gap:8px}.num input{width:80px;font:inherit;color:inherit;background:none;border:0;border-bottom:1px solid var(--line);padding:6px 0;text-align:right;border-radius:0}.num b{font-weight:400}
+.mr{display:block;width:100%;padding:16px 0;color:var(--ac);font-size:13px}.lk{color:var(--ac);margin-left:8px;font-size:13px}
+#cols p.hd{font-weight:600;text-indent:0;margin-block-start:var(--lh,2em)}#cols em{font-style:normal;text-emphasis:filled sesame}
+.hint{display:block;margin-top:10px;font-size:11px;line-height:1.5;color:var(--sub)}
+#cols h1{font-size:1.2em;font-weight:600;margin:0}
+#cols h2{font-size:.8em;font-weight:400;color:var(--sub);margin:0;margin-block-end:var(--lh,2em)}
+#cols p{margin:0;text-indent:1em}
+.z{display:none}
+#zl{left:0;width:25%}#zc{left:25%;width:50%}#zr{right:0;width:25%}
+#pn{position:absolute;left:28px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);font-size:12px;color:var(--sub);letter-spacing:.1em}
+#rbar{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:16px;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top,0px) + 10px) 20px 10px;opacity:0;pointer-events:none;transition:opacity .15s}
+#rd.ui #rbar{opacity:1;pointer-events:auto}
+#rtitle{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rbar button{font-size:13px;color:var(--sub)}#rbar button.on{color:var(--ac)}
+#fsp{position:absolute;z-index:3;left:20px;right:20px;top:calc(env(safe-area-inset-top,0px) + 58px);background:var(--surf);padding:14px 18px;display:none;align-items:center;gap:12px;font-size:12px;color:var(--sub)}
+#rd.ui.fs #fsp{display:flex}
+#fsr{flex:1;accent-color:var(--ac)}
+#rib{position:absolute;top:0;right:24px;width:10px;height:24px;background:var(--ac);display:none;z-index:2}
+#rd.bmk #rib{display:block}
+@media(prefers-reduced-motion:reduce){#rbar{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <main id="view"></main>
+  <nav id="tabs"><button data-t="s">検索</button><button data-t="h">本棚</button><button data-t="c">設定</button></nav>
+</div>
+<section id="rd" class="m" hidden>
+  <div id="rib"></div>
+  <div id="pb"><div id="clip"><div id="cols"></div></div></div>
+  <div class="z" id="zl"></div><div class="z" id="zc"></div><div class="z" id="zr"></div>
+  <span id="pn"></span>
+  <header id="rbar">
+    <button id="back" aria-label="戻る">‹ 戻る</button><span id="rtitle"></span>
+    <button id="bm">栞</button><button id="fsb">Aa</button><button id="dn">読了</button>
+  </header>
+  <div id="fsp"><span>小</span><input id="fsr" type="range" min="14" max="30" step="1"><span>大</span></div>
+</section>
+<script>
+let BOOKS=[],BYA=[],IDX=new Map(),CAT='idle',LIM=100;
+const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
+const ra=b=>b.ra,rt=b=>b.rt;
+const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
+const K='aozora:v2',$=s=>document.querySelector(s);
+let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,Z='',sw=0,sx=null,sy=0;
+function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{},m:[]}}
+function save(){try{for(const k in S.b)if(!Object.keys(S.b[k]).length)delete S.b[k];localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function theme(){const r=document.documentElement;if(S.th==='auto')delete r.dataset.theme;else r.dataset.theme=S.th}
+const GL='<small class="gl">後で読む</small>',TD=()=>`積読${GL}`;
+const B=id=>S.b[id]||(S.b[id]={}),bk=id=>IDX.get(id)||(S.m0&&S.m0[id]?{id,t:S.m0[id][0],a:S.m0[id][1]}:null);
+const mm=id=>{const b=IDX.get(id);if(b)(S.m0||(S.m0={}))[id]=[b.t,b.a]};
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function parseAozora(t){
+  let L=t.replace(/\r\n?/g,'\n').split('\n'),i=0;
+  while(i<L.length&&L[i].trim()!=='')i++;
+  L=L.slice(i);
+  const d=L.findIndex(l=>/^-{20,}$/.test(l));
+  if(d>=0&&d<8){const e=L.findIndex((l,k)=>k>d&&/^-{20,}$/.test(l));if(e>d)L=L.slice(e+1)}
+  const f=L.findIndex(l=>/^底本：/.test(l));
+  if(f>=0)L=L.slice(0,f);
+  const kj='一-龥々〆〇ヶ〓㐀-䶵',re=new RegExp('(['+kj+']+)《([^《》]+)》','g');
+  const cv=s=>{
+    const h=/［＃[^］]*見出し[^］]*］/.test(s);
+    s=s.replace(/※［＃[^］]*］/g,m=>{const u=m.match(/U\+([0-9A-Fa-f]{4,5})/);return u?String.fromCodePoint(parseInt(u[1],16)):'〓'});
+    s=esc(s.replace(/［＃[^］]*］/g,''));
+    s=s.replace(/｜([^｜《》]+)《([^《》]+)》/g,'<ruby>$1<rt>$2</rt></ruby>').replace(re,'<ruby>$1<rt>$2</rt></ruby>').replace(/《[^》]*》/g,'').replace(/｜/g,'');
+    s=s.replace(/^[\s　]+/,'');
+    return s.trim()?(h?'\u0001':'')+s:''};
+  return L.map(cv).filter(Boolean).join('\n')}
+
+const sm=()=>S.wm==='h'&&S.vw==='s';
+const ratio=()=>sm()?(MX>0?$('#clip').scrollTop/MX:0):(tot>1?pg/(tot-1):0);
+
+function row(b,extra,bms){const s=B(b.id);
+  return `<li><button class="row" data-open="${b.id}"><span class="t m">${esc(b.t)}</span><span class="a">${esc(b.a)}</span>${extra||''}</button>
+  <button class="lt ${s.later?'on':''}" data-later="${b.id}" aria-label="積読" aria-pressed="${!!s.later}"><span class="ms" aria-hidden="true">bookmark</span></button><button class="lt fv ${s.fav?'on':''}" data-fav="${b.id}" aria-label="お気に入り" aria-pressed="${!!s.fav}"><span class="ms" aria-hidden="true">star</span></button>${bms||''}</li>`}
+const bmh=id=>{const r=S.m.filter(m=>m.id===id).sort((x,y)=>x.pos-y.pos);
+  return r.length?`<div class="bms">${r.map(m=>`<span><button data-open="${id}" data-pos="${m.pos}">栞 ${Math.round(m.pos*100)}%</button><button class="x" data-del="${m.at}" aria-label="栞を外す">×</button></span>`).join('')}</div>`:''};
+function list(){
+  if(CAT==='idle'||CAT==='load')return '<p class="empty">作品一覧を読み込み中…</p>';
+  if(CAT==='err')return '<p class="empty">作品一覧を読み込めませんでした。<button class="lk" data-retry="1">もう一度試す</button></p>';
+  const k=q.trim(),ky=b=>mode==='a'?ra(b):rt(b),src=mode==='a'?BYA:BOOKS,
+  r=src.filter(b=>(!k||((mode==='a'?b.a:b.t)+ky(b)).includes(k))&&(!kn||ROWS[kn].includes(ky(b)[0])));
+  return r.length?`<ul>${r.slice(0,LIM).map(b=>row(b)).join('')}</ul>${r.length>LIM?`<button class="mr" data-more="1">さらに表示(残り${r.length-LIM}件)</button>`:''}`:`<p class="empty">${k?`「${k}」`:kn+'行'}に当てはまる${mode==='a'?'作者':'作品'}はありません。</p>`}
+const MD=()=>`<div class="md"><button class="bg" data-fo="0" aria-label="閉じる"></button><div class="sh" role="dialog" aria-modal="true" aria-label="行で絞り込む"><div class="mh"><span>行で絞り込む</span><button data-fo="0">閉じる</button></div><div class="kn">${Object.keys(ROWS).map(c=>`<button data-kn="${c}" class="${kn===c?'on':''}">${c}行</button>`).join('')}</div>${kn?'<button class="cl" data-kc="1">絞り込みを解除</button>':''}</div></div>`;
+function vs(){return `<div class="hd"><h3 class="m">検索</h3><div class="qb"><input id="q" value="${q}" placeholder="${mode==='a'?'作者名':'作品名'}" autocomplete="off"><button class="tn ${kn?'on':''}" data-fo="1" aria-label="行で絞り込む" aria-expanded="${!!fo}"><span class="ms" aria-hidden="true">tune</span></button></div></div>
+  <div class="seg"><button data-mode="a" class="${mode==='a'?'on':''}">作者</button><button data-mode="t" class="${mode==='t'?'on':''}">作品名</button><span class="lg" aria-hidden="true"><span>あとで読む</span><span>お気に入り</span></span></div>
+  <div id="list">${list()}</div>${fo?MD():''}`}
+function vh(){
+  const f={r:b=>B(b.id).t&&!B(b.id).done,l:b=>B(b.id).later,d:b=>B(b.id).done,f:b=>B(b.id).fav};
+  const r=Object.keys(S.b).map(bk).filter(Boolean).filter(f[sh]).sort((x,y)=>(B(y.id).t||0)-(B(x.id).t||0));
+  const msg={r:'読みかけの本はありません。「検索」で作品を開くと、ここに並びます。栞もここにまとまります。',l:'積読の本はありません。作品の「積読」を押すと追加されます。',d:'読了した本はありません。読書中のメニューから「読了」にできます。',f:'お気に入りの本はありません。作品の星マークを押すと追加されます。'};
+  return `<h3 class="m">本棚</h3><div class="seg">${[['r','読書中'],['l',TD()],['d','読了'],['f','お気に入り']].map(([k,n])=>`<button data-sh="${k}" class="${sh===k?'on':''}">${n}</button>`).join('')}</div>`+
+  (r.length?`<ul>${r.map(b=>row(b,'',sh==='r'?bmh(b.id):'')).join('')}</ul>`:`<p class="empty">${msg[sh]}</p>`)}
+function vc(){
+  const sg=(key,items)=>`<div class="seg">${items.map(([k,n])=>`<button data-${key}="${k}" class="${S[key]===k?'on':''}">${n}</button>`).join('')}</div>`;
+  return `<h3 class="m">設定</h3>
+  <div class="set"><span>文字サイズ　<b id="fsv">${S.fs}</b></span><input id="fsc" type="range" min="14" max="30" value="${S.fs}"></div>
+  <div class="set"><span>表示</span>${sg('th',[['auto','自動'],['light','ライト'],['dark','ダーク']])}</div>
+  <div class="set"><span>書字方向</span>${sg('wm',[['v','縦書き'],['h','横書き']])}</div>
+  <div class="set"><span>ページ送りの操作</span>${sg('tp',[['lr','左右タップ'],['ud','上下タップ']])}</div><div class="set"><span>${S.tp==='lr'?'左右':'上下'}タップの向き</span>${S.tp==='lr'?sg('dir',[['l','左タップで進む'],['r','右タップで進む']]):sg('du',[['d','下タップで進む'],['u','上タップで進む']])}</div>
+  ${S.wm==='h'?`<div class="set"><span>横書きの表示</span>${sg('vw',[['p','ページ切替'],['s','縦スクロール1枚']])}</div>`:''}
+  <div class="set"><span>表示する文の量</span><label class="num"><input id="ns" type="number" inputmode="numeric" min="0" max="99" value="${S.ns||''}" placeholder="制限なし"><b>文</b></label><small class="hint">空欄または0で制限なし。「。」までを1文と数え、「」の中のセリフは「。」があっても丸ごと1文として数えます。</small></div>
+  <p class="hint">作品は青空文庫(aozora.gr.jp)の公開データを利用しています。</p>`}
+function render(){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  $('#view').innerHTML=tab==='s'?vs():tab==='h'?vh():vc()}
+$('#tabs').onclick=e=>{const t=e.target.closest('[data-t]');if(t){tab=t.dataset.t;render()}};
+$('#view').addEventListener('input',e=>{const i=e.target;
+  if(i.id==='q'){q=i.value;LIM=100;$('#list').innerHTML=list()}
+  if(i.id==='fsc'){S.fs=+i.value;$('#fsv').textContent=S.fs;save()}
+  if(i.id==='ns'){const n=Math.floor(+i.value);S.ns=n>0?Math.min(n,99):0;save()}});
+$('#view').onclick=e=>{const d=e.target.closest('button');if(!d)return;const D=d.dataset;
+  if(D.open)openBook(D.open,D.pos!=null?+D.pos:null);
+  else if(D.later){const s=B(D.later);s.later=!s.later;mm(D.later);save();tab==='s'?$('#list').innerHTML=list():render()}
+  else if(D.fav){const s=B(D.fav);s.fav=!s.fav;mm(D.fav);save();tab==='s'?$('#list').innerHTML=list():render()}
+  else if(D.mode){mode=D.mode;LIM=100;render()}
+  else if(D.more){LIM+=100;$('#list').innerHTML=list()}
+  else if(D.retry){loadCat()}
+  else if(D.kn){kn=kn===D.kn?'':D.kn;fo=0;LIM=100;render()}
+  else if(D.fo!=null){fo=+D.fo;render()}
+  else if(D.kc){kn='';fo=0;render()}
+  else if(D.sh){sh=D.sh;render()}
+  else if(D.del){S.m=S.m.filter(m=>m.at!=D.del);save();render()}
+  else if(D.th){S.th=D.th;theme();save();render()}
+  else if(D.dir){S.dir=D.dir;save();render()}
+  else if(D.wm){S.wm=D.wm;S.dir=D.wm==='v'?'l':'r';save();render()}
+  else if(D.vw){S.vw=D.vw;save();render()}
+  else if(D.tp){S.tp=D.tp;save();render()}
+  else if(D.du){S.du=D.du;save();render()}};
+
+function sents(s){
+  const out=[];let b='',d=0;
+  for(let i=0;i<s.length;i++){const ch=s[i];b+=ch;
+    if(ch==='「'||ch==='『')d++;
+    else if(ch==='」'||ch==='』'){d=Math.max(0,d-1);
+      if(d===0&&/[。！？!?]/.test(s[i-1]||'')){const n=s[i+1];if(!n||n==='「'||n==='『'){out.push(b);b=''}}}
+    else if(ch==='。'&&d===0){out.push(b);b=''}}
+  if(b)out.push(b);return out}
+function body(b){
+  const head=`<h1>${esc(b.t)}</h1><h2>${esc(b.a)}</h2>`,ps=b.x.split('\n'),n=S.ns|0,hd=p=>p[0]==='\u0001';
+  if(!n)return head+ps.map(p=>hd(p)?`<p class="hd">${p.slice(1)}</p>`:`<p>${p}</p>`).join('');
+  const it=[];ps.forEach((p,pi)=>{const h=hd(p);sents(h?p.slice(1):p).forEach((t,i)=>it.push({t,pi,f:!i,h}))});
+  let o='';for(let i=0;i<it.length;i+=n){let q='',pp=-1;
+    it.slice(i,i+n).forEach(x=>{if(x.pi!==pp){if(pp>=0)q+='</p>';q+=`<p class="${x.h?'hd ':''}${x.f?'':'c'}">`;pp=x.pi}q+=x.t});
+    o+=`<div class="ck">${i?'':head}${q}</p></div>`}
+  return o||head}
+async function loadText(b){
+  const [pid,base]=b.p.split('/'),path=`cards/${pid}/files/${base}/${base}.txt`;
+  const c=window.caches?await caches.open('aozora-text-v1').catch(()=>null):null;let buf=null;
+  for(const root of TEXT_BASES){const u=root+path;
+    try{const m=c&&await c.match(u);if(m){buf=await m.arrayBuffer();break}
+      const r=await fetch(u);if(!r.ok)continue;if(c)c.put(u,r.clone()).catch(()=>{});buf=await r.arrayBuffer();break}catch(e){}}
+  if(!buf)throw new Error('fetch');
+  return parseAozora(new TextDecoder('shift_jis').decode(buf))}
+async function openBook(id,pos){
+  cur=id;const b=bk(id),s=B(id);s.t=Date.now();mm(id);if(pos==null)pos=s.pos||0;
+  $('#rtitle').textContent=b.t;$('#fsr').value=S.fs;$('#rd').classList.remove('ui','fs');$('#rd').hidden=false;save();
+  if(b.x==null){
+    $('#pn').textContent='';$('#cols').innerHTML='<p>読み込み中…</p>';
+    try{b.x=await loadText(b)}catch(e){if(cur===id)$('#cols').innerHTML='<p>本文を取得できませんでした。通信状況を確認して、もう一度開いてください。</p>';return}
+    if(cur!==id||$('#rd').hidden)return}
+  $('#cols').innerHTML=body(b);fit(pos)}
+function sc(x){const k=$('#clip'),v=S.wm==='v';k.scrollLeft=v?-x:x;if(v&&x&&k.scrollLeft===0)k.scrollLeft=x}
+function fit(pos){
+  const k=$('#clip'),c=$('#cols'),rw=$('#rd').clientWidth,lh=Math.round(S.fs*1.9),v=S.wm==='v',s=sm();
+  k.className=v?'v':s?'hs':'hp';k.scrollTop=0;k.scrollLeft=0;c.style.paddingLeft='';c.style.columnWidth='';
+  if(v){const n=Math.max(1,Math.floor((rw-48)/lh));W=n*lh;k.style.cssText='width:'+W+'px;left:'+(rw-W)/2+'px'}
+  else if(s){k.style.cssText='left:0;right:0';c.querySelectorAll('.ck').forEach(e=>e.style.minHeight=(k.clientHeight-52)+'px')}
+  else{const cw=rw-48;W=cw+40;k.style.cssText='width:'+cw+'px;left:24px';c.style.columnWidth=cw+'px'}
+  Z=$('#rd').clientWidth+'x'+$('#rd').clientHeight;c.style.fontSize=S.fs+'px';c.style.lineHeight=lh+'px';c.style.setProperty('--lh',lh+'px');
+  requestAnimationFrame(()=>{
+    if(v){const q=c.querySelectorAll('.ck');q.forEach(e=>e.style.padding='0');const ws=[...q].map(e=>e.getBoundingClientRect().width);q.forEach((e,i)=>{const sp=Math.max(0,Math.ceil(ws[i]/W-.02)*W-ws[i]),a=Math.floor(sp/2);e.style.paddingRight=a+'px';e.style.paddingLeft=(sp-a)+'px'});c.style.paddingLeft='0';const sw=k.scrollWidth,pages=Math.max(1,Math.ceil(sw/W-.02));
+      c.style.paddingLeft=Math.max(0,pages*W-sw)+'px';
+      MX=Math.max(0,k.scrollWidth-k.clientWidth);tot=Math.max(1,Math.round(MX/W)+1)}
+    else if(s){W=Math.max(1,k.clientHeight);MX=Math.max(0,k.scrollHeight-k.clientHeight);tot=Math.max(1,Math.ceil(MX/W-.02)+1)}
+    else{MX=Math.max(0,k.scrollWidth-k.clientWidth);tot=Math.max(1,Math.round(MX/W)+1)}
+    if(s){k.scrollTop=pos*MX;pg=Math.max(0,Math.min(tot-1,Math.round(k.scrollTop/W)));upd()}
+    else go(Math.round(pos*(tot-1)))})}
+function go(p){
+  pg=Math.max(0,Math.min(tot-1,p));if(sm())$('#clip').scrollTop=Math.min(pg*W,MX);else sc(Math.min(pg*W,MX));
+  upd()}
+function upd(){$('#pn').textContent=sm()?'':`${pg+1}/${tot}`;B(cur).pos=ratio();save();mark()}
+function marked(){return S.m.some(m=>m.id===cur&&Math.round(m.pos*(tot-1))===pg)}
+function mark(){const on=marked();$('#rd').classList.toggle('bmk',on);$('#bm').classList.toggle('on',on);
+  $('#dn').textContent=B(cur).done?'読了済':'読了';$('#dn').classList.toggle('on',!!B(cur).done)}
+function next(){if(pg>=tot-1)$('#rd').classList.add('ui');else go(pg+1)}
+function prev(){go(pg-1)}
+const left=()=>S.dir==='l'?next():prev(),right=()=>S.dir==='l'?prev():next();
+const tapU=()=>S.du==='d'?prev():next(),tapD=()=>S.du==='d'?next():prev();
+$('#rd').addEventListener('click',e=>{
+  if(e.target.closest('#rbar,#fsp')||Date.now()-sw<350)return;
+  const r=$('#rd').getBoundingClientRect(),ud=S.tp==='ud',f=ud?(e.clientY-r.top)/r.height:(e.clientX-r.left)/r.width;
+  if(f<.25)ud?tapU():left();else if(f>.75)ud?tapD():right();
+  else{$('#rd').classList.toggle('ui');$('#rd').classList.remove('fs')}});
+$('#rd').addEventListener('pointerdown',e=>{sx=e.target.closest('#rbar,#fsp')?null:e.clientX;sy=e.clientY});
+$('#rd').addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
+  if(sm())return;
+  if(S.tp==='ud'){if(Math.abs(dy)>40&&Math.abs(dy)>Math.abs(dx)*1.5){sw=Date.now();(S.du==='d')===(dy<0)?next():prev()}}
+  else if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5){sw=Date.now();if((S.dir==='l')===(dx>0))next();else prev()}});
+$('#back').onclick=()=>{$('#rd').hidden=true;render()};
+$('#bm').onclick=()=>{
+  if(marked())S.m=S.m.filter(m=>!(m.id===cur&&Math.round(m.pos*(tot-1))===pg));
+  else S.m.push({id:cur,pos:ratio(),at:Date.now()});save();mark()};
+$('#dn').onclick=()=>{const s=B(cur);s.done=!s.done;save();mark()};
+$('#fsb').onclick=()=>$('#rd').classList.toggle('fs');
+$('#fsr').oninput=e=>{S.fs=+e.target.value;save();fit(ratio())};
+addEventListener('resize',()=>{if(!$('#rd').hidden&&Z!==$('#rd').clientWidth+'x'+$('#rd').clientHeight)fit(ratio())});
+addEventListener('keydown',e=>{if($('#rd').hidden)return;if(S.tp==='ud'){if(e.key==='ArrowUp')tapU();if(e.key==='ArrowDown')tapD()}else{if(e.key==='ArrowLeft')left();if(e.key==='ArrowRight')right()}});
+if(document.fonts)document.fonts.addEventListener('loadingdone',()=>{if(!$('#rd').hidden)fit(ratio())});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&fo){fo=0;render()}});
+let st;$('#clip').addEventListener('scroll',()=>{if(!sm()||$('#rd').hidden)return;clearTimeout(st);st=setTimeout(()=>{pg=Math.max(0,Math.min(tot-1,Math.round($('#clip').scrollTop/W)));upd()},80)});
+async function loadCat(){
+  CAT='load';render();
+  try{const r=await fetch('data/catalog.json');if(!r.ok)throw 0;const j=await r.json();
+    BOOKS=j.w.map(x=>({id:x[0],t:x[1],rt:x[2],a:x[3],ra:x[4],p:x[5]}));IDX=new Map(BOOKS.map(b=>[b.id,b]));BYA=j.a.map(i=>BOOKS[i]);CAT='ok'}
+  catch(e){CAT='err'}
+  render()}
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+theme();render();loadCat();
+</script>
+</body>
+</html>
