@@ -3,7 +3,7 @@
 //   node scripts/build-catalog.mjs --csv=list.csv    手元のCSVから作る
 //   node scripts/build-catalog.mjs --tree=tree.txt   本文リポジトリのファイル一覧で、本文の場所を補正する(任意)
 //   オプション --out=data/catalog.json  --ranking-base=<人気順の取得元>(通常は指定不要)
-// 人気順は、青空文庫のアクセスランキング(直近3年)を取得して作る。取得できなければ人気順なしで作る。
+// 人気順(全期間・年間・月間)は、青空文庫のアクセスランキングから作る。取得できなければ人気順なしで作る。
 // 著作権が切れた作品(作品・人物の著作権フラグがともに「なし」)で、本文テキストがあるものだけを載せる。
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync } from 'node:fs';
@@ -91,27 +91,57 @@ for (const r of rows) {
   });
 }
 
-// 人気順: アクセスランキングのページに並ぶ「図書カードへのリンク」の順番を、そのまま順位として使う。
+// 人気順: 公式のアクセスランキング(XHTML版・テキスト版、各500位)から、3つの並びを作る。
+//   all=全期間(公開されている全年の年間ランキングを足し合わせ)、y=年間(最新の年)、m=月間(最新の月)
+//   ランキングのページに並ぶ「図書カードへのリンク」の順番を、そのまま順位として使う。
+//   注意: 公式のランキングは更新が止まっていることがあるので、取れた中で最新のものを使う。
 const RB = arg('ranking-base') || 'https://www.aozora.gr.jp/access_ranking';
+const latin1 = async (url) => {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(String(r.status));
+  return Buffer.from(await r.arrayBuffer()).toString('latin1'); // 使うのは英数字のURLだけ
+};
 async function popularity() {
-  const score = new Map();
-  const y = new Date().getFullYear();
-  for (const yr of [y, y - 1, y - 2]) {
-    for (const kind of ['xhtml', 'txt']) {
-      const url = `${RB}/${yr}_${kind}.html`;
-      try {
-        const r = await fetch(url);
-        if (!r.ok) { console.warn(`ranking skip: ${url} (${r.status})`); continue; }
-        const html = Buffer.from(await r.arrayBuffer()).toString('latin1'); // 使うのは英数字のURLだけ
-        const keys = [...new Set([...html.matchAll(/cards\/(\d+)\/card(\d+)\.html/g)].map((m) => `${m[1]}/${Number(m[2])}`))];
-        keys.forEach((k, i) => score.set(k, (score.get(k) || 0) + Math.max(0, 1000 - i)));
-        console.log(`ranking: ${url} -> ${keys.length} works`);
-      } catch (e) {
-        console.warn(`ranking error: ${url} (${String(e).slice(0, 80)})`);
-      }
-    }
+  let idx = '';
+  try {
+    idx = await latin1(`${RB}/`);
+  } catch (e) {
+    console.warn(`ranking index: ${String(e).slice(0, 80)}`);
   }
-  return score;
+  const find = (re) => [...new Set([...idx.matchAll(re)].map((m) => m[1]))];
+  const yearly = find(/[\/"'](\d{4}_(?:xhtml|txt)\.html)/g);
+  const monthly = find(/[\/"'](\d{4}_\d{2}_(?:xhtml|txt)\.html)/g);
+  if (!yearly.length) {
+    for (let yr = 2009; yr <= new Date().getFullYear(); yr++) for (const k of ['xhtml', 'txt']) yearly.push(`${yr}_${k}.html`);
+  }
+  const cache = new Map();
+  const keysOf = async (f) => {
+    if (cache.has(f)) return cache.get(f);
+    let keys = [];
+    try {
+      const html = await latin1(`${RB}/${f}`);
+      keys = [...new Set([...html.matchAll(/cards\/(\d+)\/card(\d+)\.html/g)].map((m) => `${m[1]}/${Number(m[2])}`))];
+    } catch (e) {
+      /* そのページは飛ばす */
+    }
+    cache.set(f, keys);
+    return keys;
+  };
+  const agg = async (files) => {
+    const score = new Map();
+    for (const f of files) (await keysOf(f)).forEach((k, i) => score.set(k, (score.get(k) || 0) + Math.max(0, 1000 - i)));
+    return score;
+  };
+  const latest = (files, pick) => {
+    if (!files.length) return { top: null, files: [] };
+    const top = files.map(pick).sort().pop();
+    return { top, files: files.filter((f) => pick(f) === top) };
+  };
+  const ly = latest(yearly, (f) => f.slice(0, 4));
+  const lm = latest(monthly, (f) => f.slice(0, 7).replace('_', '-'));
+  const res = { all: await agg(yearly), y: await agg(ly.files), m: await agg(lm.files), meta: { y: ly.top, m: lm.top } };
+  console.log(`ranking pages read: ${[...cache.values()].filter((k) => k.length).length}/${cache.size} (year ${ly.top}, month ${lm.top})`);
+  return res;
 }
 const pop = await popularity();
 
@@ -121,14 +151,20 @@ const byAuthor = list
   .map((w, i) => i)
   .sort((x, y) => coll.compare(list[x].ra, list[y].ra) || coll.compare(list[x].a, list[y].a) || x - y);
 
-const sc = list.map((w) => pop.get(w.key) || 0);
-const hasPop = sc.some((x) => x > 0);
-const byPop = hasPop ? list.map((w, i) => i).sort((x, y) => sc[y] - sc[x] || x - y) : null;
-console.log(hasPop ? `popularity: ${sc.filter((x) => x > 0).length} works ranked` : 'popularity: no ranking data (人気順なしで作ります)');
+const order = (score) => {
+  const sc = list.map((w) => score.get(w.key) || 0);
+  return sc.some((x) => x > 0) ? list.map((w, i) => i).sort((x, y) => sc[y] - sc[x] || x - y) : null;
+};
+const pp = {};
+for (const k of ['all', 'y', 'm']) {
+  const o = order(pop[k]);
+  if (o) pp[k] = o;
+}
+console.log(Object.keys(pp).length ? `popularity: ${Object.keys(pp).join(', ')}` : 'popularity: no ranking data (人気順なしで作ります)');
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(
   OUT,
-  JSON.stringify({ v: 1, built: new Date().toISOString().slice(0, 10), w: list.map((w) => [w.id, w.t, w.rt, w.a, w.ra, w.p]), a: byAuthor, ...(byPop ? { p: byPop } : {}) }),
+  JSON.stringify({ v: 1, built: new Date().toISOString().slice(0, 10), w: list.map((w) => [w.id, w.t, w.rt, w.a, w.ra, w.p]), a: byAuthor, ...(pp.all ? { pp, pm: pop.meta } : {}) }),
 );
 console.log(`catalog: ${list.length} works -> ${OUT}`);

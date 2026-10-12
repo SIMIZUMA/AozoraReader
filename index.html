@@ -92,6 +92,7 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
 #rd.bmk #rib{display:block}
 @media(prefers-reduced-motion:reduce){#rbar{transition:none}}
 #q,.num input{font-size:16px}
+.seg button[disabled]{opacity:.35;cursor:default}
 </style>
 </head>
 <body>
@@ -111,12 +112,13 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
   <div id="fsp"><span>小</span><input id="fsr" type="range" min="14" max="30" step="1"><span>大</span></div>
 </section>
 <script>
-let BOOKS=[],BYA=[],IDX=new Map(),CAT='idle',LIM=100,POP=[];
+let BOOKS=[],BYA=[],IDX=new Map(),CAT='idle',LIM=100,POP=[],PER={},PM={},per='all';
+const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
 const K='aozora:v2',$=s=>document.querySelector(s);
-let S=load(),tab='s',mode='a',q='',kn='',fo=0,so='k',sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,Z='',sw=0,swd=0,sx=null,sy=0;
+let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{},m:[]}}
 function save(){try{for(const k in S.b)if(!Object.keys(S.b[k]).length)delete S.b[k];localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
 function theme(){const r=document.documentElement;if(S.th==='auto')delete r.dataset.theme;else r.dataset.theme=S.th}
@@ -154,13 +156,13 @@ const bmh=id=>{const r=S.m.filter(m=>m.id===id).sort((x,y)=>x.pos-y.pos);
 function list(){
   if(CAT==='idle'||CAT==='load')return '<p class="empty">作品一覧を読み込み中…</p>';
   if(CAT==='err')return '<p class="empty">作品一覧を読み込めませんでした。<button class="lk" data-retry="1">もう一度試す</button></p>';
-  const k=q.trim(),ky=b=>mode==='a'?ra(b):rt(b),src=so==='p'&&POP.length?POP:mode==='a'?BYA:BOOKS,
-  r=src.filter(b=>(!k||((mode==='a'?b.a:b.t)+ky(b)).includes(k))&&(!kn||ROWS[kn].includes(ky(b)[0])));
+  const k=q.trim(),ky=b=>mode==='a'?ra(b):rt(b),hay=b=>mode==='a'?b.a+b.ra:mode==='p'?b.t+b.rt+b.a+b.ra:b.t+b.rt,src=mode==='p'&&POP.length?(PER[per]||POP):mode==='a'?BYA:BOOKS,
+  r=src.filter(b=>(!k||hay(b).includes(k))&&(!kn||ROWS[kn].includes(ky(b)[0])));
   return r.length?`<ul>${r.slice(0,LIM).map(b=>row(b)).join('')}</ul>${r.length>LIM?`<button class="mr" data-more="1">さらに表示(残り${r.length-LIM}件)</button>`:''}`:`<p class="empty">${k?`「${k}」`:kn+'行'}に当てはまる${mode==='a'?'作者':'作品'}はありません。</p>`}
-const SO=()=>POP.length?`<div class="seg so"><button data-so="k" class="${so==='k'?'on':''}">五十音順</button><button data-so="p" class="${so==='p'?'on':''}">人気順</button></div>`:'';
-const MD=()=>`<div class="md"><button class="bg" data-fo="0" aria-label="閉じる"></button><div class="sh" role="dialog" aria-modal="true" aria-label="行で絞り込む"><div class="mh"><span>絞り込み・並び替え</span><button data-fo="0">閉じる</button></div>${SO()}<div class="kn">${Object.keys(ROWS).map(c=>`<button data-kn="${c}" class="${kn===c?'on':''}">${c}行</button>`).join('')}</div>${kn?'<button class="cl" data-kc="1">絞り込みを解除</button>':''}</div></div>`;
-function vs(){return `<div class="hd"><h3 class="m">検索</h3><div class="qb"><input id="q" value="${q}" placeholder="${mode==='a'?'作者名':'作品名'}" autocomplete="off"><button class="tn ${kn||so==='p'?'on':''}" data-fo="1" aria-label="行で絞り込む" aria-expanded="${!!fo}"><span class="ms" aria-hidden="true">tune</span></button></div></div>
-  <div class="seg"><button data-mode="a" class="${mode==='a'?'on':''}">作者</button><button data-mode="t" class="${mode==='t'?'on':''}">作品名</button><span class="lg" aria-hidden="true"><span>あとで読む</span><span>お気に入り</span></span></div>
+const PS=()=>mode==='p'&&POP.length?`<div class="seg so">${PL.map(([k,n])=>`<button data-per="${k}" class="${per===k?'on':''}"${PER[k]?'':' disabled'}>${n}</button>`).join('')}</div>${PM.y||PM.m?`<small class="hint">最新の公式ランキング: ${PM.y?'年間は'+PM.y+'年':''}${PM.y&&PM.m?'、':''}${PM.m?'月間は'+PM.m.replace(/^(\d+)-0?(\d+)$/,'$1年$2月'):''}</small>`:''}`:'';
+const MD=()=>`<div class="md"><button class="bg" data-fo="0" aria-label="閉じる"></button><div class="sh" role="dialog" aria-modal="true" aria-label="行で絞り込む"><div class="mh"><span>絞り込み・並び替え</span><button data-fo="0">閉じる</button></div>${PS()}<div class="kn">${Object.keys(ROWS).map(c=>`<button data-kn="${c}" class="${kn===c?'on':''}">${c}行</button>`).join('')}</div>${kn?'<button class="cl" data-kc="1">絞り込みを解除</button>':''}</div></div>`;
+function vs(){return `<div class="hd"><h3 class="m">検索</h3><div class="qb"><input id="q" value="${q}" placeholder="${mode==='a'?'作者名':mode==='p'?'作品名・作者名':'作品名'}" autocomplete="off"><button class="tn ${kn||per!=='all'?'on':''}" data-fo="1" aria-label="行で絞り込む" aria-expanded="${!!fo}"><span class="ms" aria-hidden="true">tune</span></button></div></div>
+  <div class="seg"><button data-mode="a" class="${mode==='a'?'on':''}">作者</button>${POP.length?`<button data-mode="p" class="${mode==='p'?'on':''}">人気順</button>`:''}<button data-mode="t" class="${mode==='t'?'on':''}">作品名</button><span class="lg" aria-hidden="true"><span>あとで読む</span><span>お気に入り</span></span></div>
   <div id="list">${list()}</div>${fo?MD():''}`}
 function vh(){
   const f={r:b=>B(b.id).t&&!B(b.id).done,l:b=>B(b.id).later,d:b=>B(b.id).done,f:b=>B(b.id).fav};
@@ -195,7 +197,7 @@ $('#view').onclick=e=>{const dl=e.target.closest('.dl');if(dl){rmBook(dl.dataset
   else if(D.retry){loadCat()}
   else if(D.kn){kn=kn===D.kn?'':D.kn;fo=0;LIM=100;render()}
   else if(D.fo!=null){fo=+D.fo;render()}
-  else if(D.so){so=D.so;LIM=100;fo=0;render()}
+  else if(D.per){per=D.per;LIM=100;fo=0;render()}
   else if(D.kc){kn='';fo=0;render()}
   else if(D.sh){sh=D.sh;render()}
   else if(D.del){S.m=S.m.filter(m=>m.at!=D.del);save();render()}
@@ -314,7 +316,7 @@ VW.addEventListener('pointerup',swr);VW.addEventListener('pointercancel',swr);
 async function loadCat(){
   CAT='load';render();
   try{const r=await fetch('data/catalog.json');if(!r.ok)throw 0;const j=await r.json();
-    BOOKS=j.w.map(x=>({id:x[0],t:x[1],rt:x[2],a:x[3],ra:x[4],p:x[5]}));IDX=new Map(BOOKS.map(b=>[b.id,b]));BYA=j.a.map(i=>BOOKS[i]);POP=(j.p||[]).map(i=>BOOKS[i]);CAT='ok'}
+    BOOKS=j.w.map(x=>({id:x[0],t:x[1],rt:x[2],a:x[3],ra:x[4],p:x[5]}));IDX=new Map(BOOKS.map(b=>[b.id,b]));BYA=j.a.map(i=>BOOKS[i]);PER={};for(const k in (j.pp||{}))PER[k]=j.pp[k].map(i=>BOOKS[i]);POP=PER.all||[];PM=j.pm||{};if(POP.length)mode='p';CAT='ok'}
   catch(e){CAT='err'}
   render()}
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
