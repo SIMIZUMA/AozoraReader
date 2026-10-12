@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   schedule:
     - cron: '0 21 * * *' # 毎日 06:00(日本時間)に、最新の作品一覧で作り直す
   workflow_dispatch:
