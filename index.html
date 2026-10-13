@@ -74,7 +74,9 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
 .dl{position:absolute;inset:0;background:#D64545;color:#fff;display:flex;align-items:center;justify-content:flex-end;padding-right:26px}.dl .ms{font-size:26px}
 .mr{display:block;width:100%;padding:16px 0;color:var(--ac);font-size:13px}.lk{color:var(--ac);margin-left:8px;font-size:13px}
 #cols p.hd{font-weight:600;text-indent:0;margin-block-start:var(--lh,2em)}
-.v .ck{display:flow-root}#cols .ck>p.hd:first-child{margin-block-start:0}#cols em{font-style:normal;text-emphasis:filled sesame}
+.v .ck{display:flow-root}#cols .ck>p.hd:first-child{margin-block-start:0}
+.fin{display:flex;align-items:center;justify-content:center}.fin button{writing-mode:horizontal-tb;font:inherit;font-size:16px;letter-spacing:.2em;color:var(--ac);border:1px solid var(--ac);padding:14px 40px;background:none}.fin button.on{background:var(--ac);color:var(--bg)}
+.v .fin{inline-size:100%}.hp .fin{min-height:100%;-webkit-column-break-before:always;break-before:column}#cols em{font-style:normal;text-emphasis:filled sesame}
 .hint{display:block;margin-top:10px;font-size:11px;line-height:1.5;color:var(--sub)}
 #cols h1{font-size:1.2em;font-weight:600;margin:0}
 #cols h2{font-size:.8em;font-weight:400;color:var(--sub);margin:0;margin-block-end:var(--lh,2em)}
@@ -118,7 +120,7 @@ const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
-const APPV='v10',K='aozora:v2',$=s=>document.querySelector(s);
+const APPV='v11',K='aozora:v2',$=s=>document.querySelector(s);
 let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,CAPV=0,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{},m:[]}}
 function save(){try{for(const k in S.b)if(!Object.keys(S.b[k]).length)delete S.b[k];localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
@@ -218,6 +220,7 @@ function sents(s){
       if(d===0&&/[。！？!?]/.test(s[i-1]||'')){const n=s[i+1];if(!n||n==='「'||n==='『'){out.push(b);b=''}}}
     else if(ch==='。'&&d===0){out.push(b);b=''}}
   if(b)out.push(b);return out}
+const FIN=()=>{const d=cur&&S.b[cur]&&S.b[cur].done;return `<div class="fin"><button id="fin" class="${d?'on':''}">${d?'読了済み':'読了'}</button></div>`};
 // 1画面に入る文字数のめやす(縦書き・横書きとも、行数 × 1行の文字数)。計れないときは制限しない。
 function cap(){
   const fs=S.fs,lh=Math.round(fs*1.9),rw=$('#rd').clientWidth,H=$('#pb').clientHeight;
@@ -238,7 +241,7 @@ function fitSplit(t,C){
   out.push(t);return out}
 function body(b){
   const head=`<h1>${esc(b.t)}</h1><h2>${esc(b.a)}</h2>`,ps=b.x.split('\n'),n=S.ns|0,hd=p=>p[0]==='\u0001';
-  if(!n)return head+ps.map(p=>hd(p)?`<p class="hd">${p.slice(1)}</p>`:`<p>${p}</p>`).join('');
+  if(!n)return head+ps.map(p=>hd(p)?`<p class="hd">${p.slice(1)}</p>`:`<p>${p}</p>`).join('')+FIN();
   const C=cap(),it=[];CAPV=C;
   ps.forEach((p,pi)=>{const h=hd(p);let k=0;sents(h?p.slice(1):p).forEach(t=>(h?[t]:fitSplit(t,C)).forEach(u=>it.push({t:u,pi,f:!k++,h})))});
   // タイトルも見出し(章)も、1文として数える。章は新しいまとまり(ページ)の先頭から始める
@@ -250,7 +253,7 @@ function body(b){
   let o='';cs.forEach((g,i)=>{let q='',pp=-1;
     g.forEach(x=>{if(x.pi!==pp){if(pp>=0)q+='</p>';q+=`<p class="${x.h?'hd ':''}${x.f?'':'c'}">`;pp=x.pi}q+=x.t});
     o+=`<div class="ck">${i?'':head}${q}${pp>=0?'</p>':''}</div>`});
-  return o||head}
+  return (o||head)+FIN()}
 async function loadText(b){
   const [pid,base]=b.p.split('/'),path=`cards/${pid}/files/${base}/${base}.txt`;
   const c=window.caches?await caches.open('aozora-text-v1').catch(()=>null):null;let buf=null;
@@ -269,7 +272,7 @@ async function openBook(id,pos){
     if(cur!==id||$('#rd').hidden)return}
   $('#cols').innerHTML=body(b);fit(pos)}
 function lines(c){
-  const fs=S.fs,rg=document.createRange(),cs=[],tw=document.createTreeWalker(c,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentNode.nodeName==='RT'||!n.nodeValue.trim()?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  const fs=S.fs,rg=document.createRange(),cs=[],tw=document.createTreeWalker(c,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentNode.nodeName==='RT'||n.parentNode.closest('.fin')||!n.nodeValue.trim()?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
   for(let n;n=tw.nextNode();){rg.selectNodeContents(n);for(const r of rg.getClientRects?.()||[])if(r.width>0&&r.height>0)cs.push((r.left+r.right)/2)}
   cs.sort((a,b)=>b-a);const L=[];for(const x of cs)if(!L.length||L[L.length-1]-x>fs*.8)L.push(x);return L}
 function sc(x){const k=$('#clip'),v=S.wm==='v';k.scrollLeft=v?-x:x;if(v&&x&&k.scrollLeft===0)k.scrollLeft=x}
@@ -278,18 +281,20 @@ function fit(pos){
   const k=$('#clip'),c=$('#cols'),rw=$('#rd').clientWidth,lh=Math.round(S.fs*1.9),v=S.wm==='v',s=sm();
   OFF=null;PW=null;k.className=v?'v':s?'hs':'hp';k.scrollTop=0;k.scrollLeft=0;c.style.paddingLeft='';c.style.columnWidth='';
   if(v){const n=Math.max(1,Math.floor((rw-48)/lh));W=n*lh;k.style.cssText='width:'+W+'px;left:'+(rw-W)/2+'px'}
-  else if(s){k.style.cssText='left:0;right:0';c.querySelectorAll('.ck').forEach(e=>e.style.minHeight=(k.clientHeight-52)+'px')}
+  else if(s){k.style.cssText='left:0;right:0';c.querySelectorAll('.ck,.fin').forEach(e=>e.style.minHeight=(k.clientHeight-52)+'px')}
   else{const cw=rw-48;W=cw+40;k.style.cssText='width:'+cw+'px;left:24px';c.style.columnWidth=cw+'px'}
   Z=$('#rd').clientWidth+'x'+$('#rd').clientHeight;c.style.fontSize=S.fs+'px';c.style.lineHeight=lh+'px';c.style.setProperty('--lh',lh+'px');
   requestAnimationFrame(()=>{
-    if(v){const q=c.querySelectorAll('.ck');q.forEach(e=>e.style.padding='0');const ws=[...q].map(e=>e.getBoundingClientRect().width);q.forEach((e,i)=>{const sp=Math.max(0,Math.ceil(ws[i]/W-.02)*W-ws[i]),a=Math.floor(sp/2);e.style.paddingRight=a+'px';e.style.paddingLeft=(sp-a)+'px'});c.style.paddingLeft='0';const sw=k.scrollWidth,pages=Math.max(1,Math.ceil(sw/W-.02));
+    if(v){const q=c.querySelectorAll('.ck');q.forEach(e=>e.style.padding='0');const ws=[...q].map(e=>e.getBoundingClientRect().width);q.forEach((e,i)=>{const sp=Math.max(0,Math.ceil(ws[i]/W-.02)*W-ws[i]),a=Math.floor(sp/2);e.style.paddingRight=a+'px';e.style.paddingLeft=(sp-a)+'px'});c.style.setProperty('--W',W+'px');
+      const fin=c.querySelector('.fin');if(fin){fin.style.marginBlockStart='0';fin.style.blockSize=W+'px';const us=k.getBoundingClientRect().right-fin.getBoundingClientRect().right,r=us%W;fin.style.marginBlockStart=(r<1||W-r<1?0:W-r)+'px'}
+      c.style.paddingLeft='0';const sw=k.scrollWidth,pages=Math.max(1,Math.ceil(sw/W-.02));
       c.style.paddingLeft=Math.max(0,pages*W-sw)+'px';
       MX=Math.max(0,k.scrollWidth-k.clientWidth);tot=Math.max(1,Math.round(MX/W)+1);
       if(!q.length){const L=lines(c),lh=Math.round(S.fs*1.9);let dr=false;
         for(let i=1;i<L.length;i++){let d=(L[i-1]-L[i])%lh;d=Math.min(d,lh-d);if(d>.75){dr=true;break}}
         if(dr){const R=k.getBoundingClientRect().right,fs=S.fs;OFF=[0];PW=[];let st=R,j=0;
           while(j<L.length){let e=j;while(e<L.length&&L[e]-fs*.5>=st-W)e++;if(e===j)e=j+1;PW.push(Math.min(W,st-(L[e-1]-fs*.7)));if(e>=L.length)break;st=L[e]+fs*1.2;OFF.push(R-st);j=e}
-          tot=PW.length;const need=OFF[tot-1]+W;if(k.scrollWidth<need)c.style.paddingLeft=(parseFloat(c.style.paddingLeft)||0)+need-k.scrollWidth+'px'}}}
+          if(fin){OFF.push(R-fin.getBoundingClientRect().right);PW.push(W)}tot=PW.length;const need=OFF[tot-1]+W;if(k.scrollWidth<need)c.style.paddingLeft=(parseFloat(c.style.paddingLeft)||0)+need-k.scrollWidth+'px'}}}
     else if(s){W=Math.max(1,k.clientHeight);MX=Math.max(0,k.scrollHeight-k.clientHeight);tot=Math.max(1,Math.ceil(MX/W-.02)+1)}
     else{MX=Math.max(0,k.scrollWidth-k.clientWidth);tot=Math.max(1,Math.round(MX/W)+1)}
     if(s){k.scrollTop=pos*MX;pg=Math.max(0,Math.min(tot-1,Math.round(k.scrollTop/W)));upd()}
@@ -302,7 +307,7 @@ function go(p){
 function upd(){$('#pn').textContent=sm()?'':`${pg+1}/${tot}`;B(cur).pos=ratio();save();mark()}
 function marked(){return S.m.some(m=>m.id===cur&&Math.round(m.pos*(tot-1))===pg)}
 function mark(){const on=marked();$('#rd').classList.toggle('bmk',on);$('#bm').classList.toggle('on',on);
-  $('#dn').textContent=B(cur).done?'読了済':'読了';$('#dn').classList.toggle('on',!!B(cur).done)}
+  $('#dn').textContent=B(cur).done?'読了済':'読了';$('#dn').classList.toggle('on',!!B(cur).done);const f=$('#fin');if(f){f.textContent=B(cur).done?'読了済み':'読了';f.classList.toggle('on',!!B(cur).done)}}
 function next(){if(pg>=tot-1)$('#rd').classList.add('ui');else go(pg+1)}
 function prev(){go(pg-1)}
 const left=()=>S.dir==='l'?next():prev(),right=()=>S.dir==='l'?prev():next();
@@ -326,6 +331,7 @@ $('#bm').onclick=()=>{
   if(marked())S.m=S.m.filter(m=>!(m.id===cur&&Math.round(m.pos*(tot-1))===pg));
   else S.m.push({id:cur,pos:ratio(),at:Date.now()});save();mark()};
 $('#dn').onclick=()=>{const s=B(cur);s.done=!s.done;save();mark()};
+$('#cols').addEventListener('click',e=>{if(e.target.closest('#fin')){e.stopPropagation();const s=B(cur);s.done=!s.done;save();mark()}});
 $('#fsb').onclick=()=>$('#rd').classList.toggle('fs');
 $('#fsr').oninput=e=>{S.fs=+e.target.value;save();fit(ratio())};
 addEventListener('resize',()=>{if(!$('#rd').hidden&&Z!==$('#rd').clientWidth+'x'+$('#rd').clientHeight)fit(ratio())});
