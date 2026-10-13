@@ -31,6 +31,8 @@ h3{font-weight:600;font-size:22px;margin:0 0 20px;letter-spacing:.08em}
 .seg{display:flex;gap:20px;margin-bottom:16px}
 .seg button{color:var(--sub);padding:4px 0;border-bottom:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 .seg button.on{color:var(--ink);border-color:var(--ac)}
+.seg.tabs{position:relative}.seg.tabs button.on{border-color:transparent}
+.ind{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--ac);pointer-events:none;will-change:transform,width}.ind.an{transition:transform .24s cubic-bezier(.3,.7,.2,1),width .24s cubic-bezier(.3,.7,.2,1)}
 #q{width:100%;font:inherit;color:inherit;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 0;border-radius:0}
 .hd{margin-bottom:12px}.hd h3{margin:0 0 8px}.hd #q{flex:1;min-width:0;border-bottom:0}.qb{flex:1;min-width:0;display:flex;align-items:center;border-bottom:1px solid var(--line)}.tn{display:flex;color:var(--sub);padding:0 0 0 8px}.tn.on{color:var(--ac)}.tn .ms{font-size:22px}
 .kn{display:grid;grid-template-columns:repeat(5,1fr);text-align:center;margin:0 0 8px}.kn button{font-size:13px;color:var(--sub);padding:8px 0}.kn button.on{color:var(--ac);font-weight:600}
@@ -120,7 +122,7 @@ const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
-const APPV='v12',K='aozora:v2',$=s=>document.querySelector(s);
+const APPV='v13',K='aozora:v2',$=s=>document.querySelector(s);
 let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,CAPV=0,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{},m:[]}}
 function save(){try{for(const k in S.b)if(!Object.keys(S.b[k]).length)delete S.b[k];localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
@@ -165,13 +167,13 @@ function list(){
 const PS=()=>mode==='p'&&POP.length?`<div class="seg so">${PL.map(([k,n])=>`<button data-per="${k}" class="${per===k?'on':''}"${PER[k]?'':' disabled'}>${n}</button>`).join('')}</div>${PM.y||PM.m?`<small class="hint">最新の公式ランキング: ${PM.y?'年間は'+PM.y+'年':''}${PM.y&&PM.m?'、':''}${PM.m?'月間は'+PM.m.replace(/^(\d+)-0?(\d+)$/,'$1年$2月'):''}</small>`:''}`:'';
 const MD=()=>`<div class="md"><button class="bg" data-fo="0" aria-label="閉じる"></button><div class="sh" role="dialog" aria-modal="true" aria-label="行で絞り込む"><div class="mh"><span>絞り込み・並び替え</span><button data-fo="0">閉じる</button></div>${PS()}<div class="kn">${Object.keys(ROWS).map(c=>`<button data-kn="${c}" class="${kn===c?'on':''}">${c}行</button>`).join('')}</div>${kn?'<button class="cl" data-kc="1">絞り込みを解除</button>':''}</div></div>`;
 function vs(){return `<div class="hd"><h3 class="m">検索</h3><div class="qb"><input id="q" value="${q}" placeholder="${mode==='a'?'作者名':mode==='p'?'作品名・作者名':'作品名'}" autocomplete="off"><button class="tn ${kn||per!=='all'?'on':''}" data-fo="1" aria-label="行で絞り込む" aria-expanded="${!!fo}"><span class="ms" aria-hidden="true">tune</span></button></div></div>
-  <div class="seg">${POP.length?`<button data-mode="p" class="${mode==='p'?'on':''}">人気順</button>`:''}<button data-mode="a" class="${mode==='a'?'on':''}">作者</button><button data-mode="t" class="${mode==='t'?'on':''}">作品名</button><span class="lg" aria-hidden="true"><span>あとで読む</span><span>お気に入り</span></span></div>
+  <div class="seg tabs"><i class="ind"></i>${POP.length?`<button data-mode="p" class="${mode==='p'?'on':''}">人気順</button>`:''}<button data-mode="a" class="${mode==='a'?'on':''}">作者</button><button data-mode="t" class="${mode==='t'?'on':''}">作品名</button><span class="lg" aria-hidden="true"><span>あとで読む</span><span>お気に入り</span></span></div>
   <div id="list">${list()}</div>${fo?MD():''}`}
 function vh(){
   const f={r:b=>B(b.id).t&&!B(b.id).done,l:b=>B(b.id).later,d:b=>B(b.id).done,f:b=>B(b.id).fav};
   const r=Object.keys(S.b).map(bk).filter(Boolean).filter(f[sh]).sort((x,y)=>(B(y.id).t||0)-(B(x.id).t||0));
   const msg={r:'読みかけの本はありません。「検索」で作品を開くと、ここに並びます。栞もここにまとまります。',l:'積読の本はありません。作品の「積読」を押すと追加されます。',d:'読了した本はありません。読書中のメニューから「読了」にできます。',f:'お気に入りの本はありません。作品の星マークを押すと追加されます。'};
-  return `<h3 class="m">本棚</h3><div class="seg">${[['r','読書中'],['l',TD()],['d','読了'],['f','お気に入り']].map(([k,n])=>`<button data-sh="${k}" class="${sh===k?'on':''}">${n}</button>`).join('')}</div>`+
+  return `<h3 class="m">本棚</h3><div class="seg tabs"><i class="ind"></i>${[['r','読書中'],['l',TD()],['d','読了'],['f','お気に入り']].map(([k,n])=>`<button data-sh="${k}" class="${sh===k?'on':''}">${n}</button>`).join('')}</div>`+
   (r.length?`<ul>${r.map(b=>row(b,'',sh==='r'?bmh(b.id):'',sh==='r')).join('')}</ul>`:`<p class="empty">${msg[sh]}</p>`)}
 function vc(){
   const sg=(key,items)=>`<div class="seg">${items.map(([k,n])=>`<button data-${key}="${k}" class="${S[key]===k?'on':''}">${n}</button>`).join('')}</div>`;
@@ -186,7 +188,7 @@ function vc(){
   <p class="hint">作品一覧: ${CAT==='ok'?BOOKS.length.toLocaleString()+'作品(更新 '+BUILT+')':'未読み込み'} / 人気順: ${POP.length?'あり':'なし'} / アプリ ${APPV}</p>`}
 function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
-  $('#view').innerHTML=tab==='s'?vs():tab==='h'?vh():vc()}
+  $('#view').innerHTML=tab==='s'?vs():tab==='h'?vh():vc();placeInd()}
 $('#tabs').onclick=e=>{const t=e.target.closest('[data-t]');if(t){tab=t.dataset.t;render()}};
 $('#view').addEventListener('input',e=>{const i=e.target;
   if(i.id==='q'){q=i.value;LIM=100;$('#list').innerHTML=list()}
@@ -356,17 +358,39 @@ VW.addEventListener('pointerup',swr);VW.addEventListener('pointercancel',swr);
 // 読書中の本そのもの(.si)から始めたスワイプは、削除用なので対象外。
 function step(d){
   const a=tab==='s'?(POP.length?['p','a','t']:['a','t']):['r','l','d','f'],i=a.indexOf(tab==='s'?mode:sh)+d;
-  if(i<0||i>=a.length)return;
+  if(i<0||i>=a.length)return false;
   if(tab==='s'){mode=a[i];LIM=100}else sh=a[i];
-  render()}
-let tsw=null;
+  render();return true}
+let tsw=null,IND=null;
+// タブの下のバー: 指の動きに合わせて、隣のタブへ連続して動く。離したら、切り替わる先(または元)へ滑らかに動く
+const tabEls=()=>[...VW.querySelectorAll('.seg.tabs button')],activeIdx=()=>tabEls().findIndex(b=>b.classList.contains('on'));
+const indAt=i=>{const b=tabEls()[i];return b?{l:b.offsetLeft,w:b.offsetWidth}:null};
+function setInd(l,w,an){const e=VW.querySelector('.seg.tabs .ind');if(!e)return;e.classList.toggle('an',!!an);e.style.width=w+'px';e.style.transform='translateX('+l+'px)'}
+function placeInd(){
+  const t=indAt(activeIdx());if(!t)return;
+  if(IND&&IND.k===tab){setInd(IND.l,IND.w,false);requestAnimationFrame(()=>requestAnimationFrame(()=>setInd(t.l,t.w,true)))}
+  else setInd(t.l,t.w,false);
+  IND={k:tab,l:t.l,w:t.w}}
+function dragInd(dx){
+  const i=activeIdx(),a=indAt(i);if(!a)return;
+  const d=dx<0?1:-1,nb=indAt(i+d),p=Math.min(1,Math.abs(dx)/120),b=nb||a;
+  const l=a.l+(b.l-a.l)*p+(nb?0:d*Math.min(12,Math.abs(dx)/6)),w=a.w+(b.w-a.w)*p;
+  setInd(l,w,false);IND={k:tab,l,w}}
+function snapInd(){const a=indAt(activeIdx());if(!a)return;setInd(a.l,a.w,true);IND={k:tab,l:a.l,w:a.w}}
 VW.addEventListener('pointerdown',e=>{
   const op=VW.querySelector('.si.op');if(op&&!op.contains(e.target)&&!e.target.closest('.dl')){op.classList.add('an');op.style.transform='';op.classList.remove('op')}
   if((tab!=='s'&&tab!=='h')||e.target.closest('.si,.dl,.md,input')){tsw=null;return}
-  tsw={x:e.clientX,y:e.clientY}});
-VW.addEventListener('pointerup',e=>{if(!tsw)return;const dx=e.clientX-tsw.x,dy=e.clientY-tsw.y;tsw=null;
-  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6){swd=Date.now();step(dx<0?1:-1)}});
-VW.addEventListener('pointercancel',()=>{tsw=null});
+  tsw={x:e.clientX,y:e.clientY,on:false}});
+VW.addEventListener('pointermove',e=>{if(!tsw)return;const dx=e.clientX-tsw.x,dy=e.clientY-tsw.y;
+  if(!tsw.on){if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.6)tsw.on=true;else return}
+  dragInd(dx)});
+VW.addEventListener('pointerup',e=>{if(!tsw)return;const dx=e.clientX-tsw.x,dy=e.clientY-tsw.y,on=tsw.on;tsw=null;
+  if(on)swd=Date.now();
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6){if(!step(dx<0?1:-1)&&on)snapInd()}
+  else if(on)snapInd()});
+VW.addEventListener('pointercancel',()=>{if(tsw&&tsw.on)snapInd();tsw=null});
+addEventListener('resize',()=>{IND=null;placeInd()});
+if(document.fonts)document.fonts.addEventListener('loadingdone',()=>{IND=null;placeInd()});
 async function loadCat(){
   CAT='load';render();
   try{const r=await fetch('data/catalog.json');if(!r.ok)throw 0;const j=await r.json();
