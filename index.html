@@ -120,7 +120,7 @@ const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
-const APPV='v11',K='aozora:v2',$=s=>document.querySelector(s);
+const APPV='v12',K='aozora:v2',$=s=>document.querySelector(s);
 let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,CAPV=0,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{},m:[]}}
 function save(){try{for(const k in S.b)if(!Object.keys(S.b[k]).length)delete S.b[k];localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
@@ -330,8 +330,8 @@ $('#back').onclick=()=>{$('#rd').hidden=true;render()};
 $('#bm').onclick=()=>{
   if(marked())S.m=S.m.filter(m=>!(m.id===cur&&Math.round(m.pos*(tot-1))===pg));
   else S.m.push({id:cur,pos:ratio(),at:Date.now()});save();mark()};
-$('#dn').onclick=()=>{const s=B(cur);s.done=!s.done;save();mark()};
-$('#cols').addEventListener('click',e=>{if(e.target.closest('#fin')){e.stopPropagation();const s=B(cur);s.done=!s.done;save();mark()}});
+$('#dn').onclick=()=>{const s=B(cur);s.done=!s.done;if(s.done)s.later=false;save();mark()};
+$('#cols').addEventListener('click',e=>{if(e.target.closest('#fin')){e.stopPropagation();const s=B(cur);s.done=!s.done;if(s.done)s.later=false;save();mark()}});
 $('#fsb').onclick=()=>$('#rd').classList.toggle('fs');
 $('#fsr').oninput=e=>{S.fs=+e.target.value;save();fit(ratio())};
 addEventListener('resize',()=>{if(!$('#rd').hidden&&Z!==$('#rd').clientWidth+'x'+$('#rd').clientHeight)fit(ratio())});
