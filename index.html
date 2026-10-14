@@ -50,8 +50,6 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
 .lg{margin-left:auto;margin-right:26px;align-self:flex-start;padding-top:10px;display:flex;font-size:10px;line-height:1.2;color:var(--sub);pointer-events:none}.lg>span{width:56px;text-align:center;white-space:nowrap}
 .gl{font-size:9px;opacity:.7;line-height:1.2}
 .ms{font-family:'Material Symbols Outlined';font-size:26px;line-height:1;display:inline-block;width:1em;overflow:hidden;white-space:nowrap;letter-spacing:normal;font-feature-settings:'liga';-webkit-font-feature-settings:'liga';font-variation-settings:'FILL' 0}
-.bms{width:100%;display:flex;flex-wrap:wrap;gap:4px 18px;padding:0 0 12px;font-size:12px}
-.bms button{color:var(--ac)}.bms .x{padding:0 0 0 4px;color:var(--sub)}
 .set{padding:18px 0;border-bottom:1px solid var(--line)}
 .set>span{display:block;font-size:12px;color:var(--sub);margin-bottom:10px}
 .set .seg{margin:0}.set input[type=range]{width:100%;accent-color:var(--ac)}
@@ -90,11 +88,6 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
 #rd.ui #rbar{opacity:1;pointer-events:auto}
 #rtitle{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #rbar button{font-size:13px;color:var(--sub)}#rbar button.on{color:var(--ac)}
-#fsp{position:absolute;z-index:3;left:20px;right:20px;top:calc(env(safe-area-inset-top,0px) + 58px);background:var(--surf);padding:14px 18px;display:none;align-items:center;gap:12px;font-size:12px;color:var(--sub)}
-#rd.ui.fs #fsp{display:flex}
-#fsr{flex:1;accent-color:var(--ac)}
-#rib{position:absolute;top:0;right:24px;width:10px;height:24px;background:var(--ac);display:none;z-index:2}
-#rd.bmk #rib{display:block}
 @media(prefers-reduced-motion:reduce){#rbar{transition:none}}
 #q,.num input{font-size:16px}
 .seg button[disabled]{opacity:.35;cursor:default}
@@ -106,15 +99,13 @@ li{display:flex;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--
   <nav id="tabs"><button data-t="s">検索</button><button data-t="h">本棚</button><button data-t="c">設定</button></nav>
 </div>
 <section id="rd" class="m" hidden>
-  <div id="rib"></div>
   <div id="pb"><div id="clip"><div id="cols"></div></div></div>
   <div class="z" id="zl"></div><div class="z" id="zc"></div><div class="z" id="zr"></div>
   <span id="pn"></span>
   <header id="rbar">
     <button id="back" aria-label="戻る">‹ 戻る</button><span id="rtitle"></span>
-    <button id="top0">最初から</button><button id="bm">栞</button><button id="fsb">Aa</button><button id="dn">読了</button>
+    <button id="top0">最初から</button><button id="dn">読了</button>
   </header>
-  <div id="fsp"><span>小</span><input id="fsr" type="range" min="14" max="30" step="1"><span>大</span></div>
 </section>
 <script>
 let BOOKS=[],BYA=[],IDX=new Map(),CAT='idle',LIM=100,POP=[],PER={},PM={},BUILT='',per='all';
@@ -122,9 +113,10 @@ const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
-const APPV='v13',K='aozora:v2',$=s=>document.querySelector(s);
+const APPV='v15',K='aozora:v2',$=s=>document.querySelector(s);
 let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,CAPV=0,Z='',sw=0,swd=0,sx=null,sy=0;
-function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{},m:[]}}
+function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{}}}
+delete S.m; // 廃止した、ページに付ける栞のデータ
 function save(){try{for(const k in S.b)if(!Object.keys(S.b[k]).length)delete S.b[k];localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
 function theme(){const r=document.documentElement;if(S.th==='auto')delete r.dataset.theme;else r.dataset.theme=S.th}
 const GL='<small class="gl">後で読む</small>',TD=()=>`積読${GL}`;
@@ -152,12 +144,10 @@ function parseAozora(t){
 const sm=()=>S.wm==='h'&&S.vw==='s';
 const ratio=()=>sm()?(MX>0?$('#clip').scrollTop/MX:0):(tot>1?pg/(tot-1):0);
 
-function row(b,extra,bms,rm){const s=B(b.id),h=`<button class="row" data-open="${b.id}"><span class="t m">${esc(b.t)}</span><span class="a">${esc(b.a)}</span>${extra||''}</button>
-  <button class="lt ${s.later?'on':''}" data-later="${b.id}" aria-label="積読" aria-pressed="${!!s.later}"><span class="ms" aria-hidden="true">bookmark</span></button><button class="lt fv ${s.fav?'on':''}" data-fav="${b.id}" aria-label="お気に入り" aria-pressed="${!!s.fav}"><span class="ms" aria-hidden="true">star</span></button>${bms||''}`;
+function row(b,extra,_x,rm){const s=B(b.id),h=`<button class="row" data-open="${b.id}"><span class="t m">${esc(b.t)}</span><span class="a">${esc(b.a)}</span>${extra||''}</button>
+  <button class="lt ${s.later?'on':''}" data-later="${b.id}" aria-label="積読" aria-pressed="${!!s.later}"><span class="ms" aria-hidden="true">bookmark</span></button><button class="lt fv ${s.fav?'on':''}" data-fav="${b.id}" aria-label="お気に入り" aria-pressed="${!!s.fav}"><span class="ms" aria-hidden="true">star</span></button>`;
   return rm?`<li class="sw" data-rm="${b.id}"><div class="dl" data-rmb="${b.id}"><span class="ms" aria-hidden="true">delete</span></div><div class="si">${h}</div></li>`:`<li>${h}</li>`}
 function rmBook(id){const s=B(id);delete s.t;s.pos=0;save();render()}
-const bmh=id=>{const r=S.m.filter(m=>m.id===id).sort((x,y)=>x.pos-y.pos);
-  return r.length?`<div class="bms">${r.map(m=>`<span><button data-open="${id}" data-pos="${m.pos}">栞 ${Math.round(m.pos*100)}%</button><button class="x" data-del="${m.at}" aria-label="栞を外す">×</button></span>`).join('')}</div>`:''};
 function list(){
   if(CAT==='idle'||CAT==='load')return '<p class="empty">作品一覧を読み込み中…</p>';
   if(CAT==='err')return '<p class="empty">作品一覧を読み込めませんでした。<button class="lk" data-retry="1">もう一度試す</button></p>';
@@ -172,9 +162,9 @@ function vs(){return `<div class="hd"><h3 class="m">検索</h3><div class="qb"><
 function vh(){
   const f={r:b=>B(b.id).t&&!B(b.id).done,l:b=>B(b.id).later,d:b=>B(b.id).done,f:b=>B(b.id).fav};
   const r=Object.keys(S.b).map(bk).filter(Boolean).filter(f[sh]).sort((x,y)=>(B(y.id).t||0)-(B(x.id).t||0));
-  const msg={r:'読みかけの本はありません。「検索」で作品を開くと、ここに並びます。栞もここにまとまります。',l:'積読の本はありません。作品の「積読」を押すと追加されます。',d:'読了した本はありません。読書中のメニューから「読了」にできます。',f:'お気に入りの本はありません。作品の星マークを押すと追加されます。'};
+  const msg={r:'読みかけの本はありません。「検索」で作品を開くと、ここに並びます。',l:'積読の本はありません。作品の「積読」を押すと追加されます。',d:'読了した本はありません。読書中のメニューから「読了」にできます。',f:'お気に入りの本はありません。作品の星マークを押すと追加されます。'};
   return `<h3 class="m">本棚</h3><div class="seg tabs"><i class="ind"></i>${[['r','読書中'],['l',TD()],['d','読了'],['f','お気に入り']].map(([k,n])=>`<button data-sh="${k}" class="${sh===k?'on':''}">${n}</button>`).join('')}</div>`+
-  (r.length?`<ul>${r.map(b=>row(b,'',sh==='r'?bmh(b.id):'',sh==='r')).join('')}</ul>`:`<p class="empty">${msg[sh]}</p>`)}
+  (r.length?`<ul>${r.map(b=>row(b,'','',sh==='r')).join('')}</ul>`:`<p class="empty">${msg[sh]}</p>`)}
 function vc(){
   const sg=(key,items)=>`<div class="seg">${items.map(([k,n])=>`<button data-${key}="${k}" class="${S[key]===k?'on':''}">${n}</button>`).join('')}</div>`;
   return `<h3 class="m">設定</h3>
@@ -206,7 +196,6 @@ $('#view').onclick=e=>{const dl=e.target.closest('.dl');if(dl){rmBook(dl.dataset
   else if(D.per){per=D.per;LIM=100;fo=0;render()}
   else if(D.kc){kn='';fo=0;render()}
   else if(D.sh){sh=D.sh;render()}
-  else if(D.del){S.m=S.m.filter(m=>m.at!=D.del);save();render()}
   else if(D.th){S.th=D.th;theme();save();render()}
   else if(D.dir){S.dir=D.dir;save();render()}
   else if(D.wm){S.wm=D.wm;S.dir=D.wm==='v'?'l':'r';save();render()}
@@ -267,7 +256,7 @@ async function loadText(b){
 let pv=null;
 async function openBook(id,pos){
   pv=null;$('#top0').textContent='最初から';cur=id;const b=bk(id),s=B(id);s.t=Date.now();mm(id);if(pos==null)pos=s.pos||0;
-  $('#rtitle').textContent=b.t;$('#fsr').value=S.fs;$('#rd').classList.remove('ui','fs');$('#rd').hidden=false;save();
+  $('#rtitle').textContent=b.t;$('#rd').classList.remove('ui');$('#rd').hidden=false;save();
   if(b.x==null){
     $('#pn').textContent='';$('#cols').innerHTML='<p>読み込み中…</p>';
     try{b.x=await loadText(b)}catch(e){if(cur===id)$('#cols').innerHTML='<p>本文を取得できませんでした。通信状況を確認して、もう一度開いてください。</p>';return}
@@ -307,35 +296,29 @@ function go(p){
   else sc(Math.min(pg*W,MX));
   upd()}
 function upd(){$('#pn').textContent=sm()?'':`${pg+1}/${tot}`;B(cur).pos=ratio();save();mark()}
-function marked(){return S.m.some(m=>m.id===cur&&Math.round(m.pos*(tot-1))===pg)}
-function mark(){const on=marked();$('#rd').classList.toggle('bmk',on);$('#bm').classList.toggle('on',on);
+function mark(){
   $('#dn').textContent=B(cur).done?'読了済':'読了';$('#dn').classList.toggle('on',!!B(cur).done);const f=$('#fin');if(f){f.textContent=B(cur).done?'読了済み':'読了';f.classList.toggle('on',!!B(cur).done)}}
 function next(){if(pg>=tot-1)$('#rd').classList.add('ui');else go(pg+1)}
 function prev(){go(pg-1)}
 const left=()=>S.dir==='l'?next():prev(),right=()=>S.dir==='l'?prev():next();
 const tapU=()=>S.du==='d'?prev():next(),tapD=()=>S.du==='d'?next():prev();
 $('#rd').addEventListener('click',e=>{
-  if(e.target.closest('#rbar,#fsp')||Date.now()-sw<350)return;
+  if(e.target.closest('#rbar')||Date.now()-sw<350)return;
   const r=$('#rd').getBoundingClientRect(),ud=S.tp==='ud',f=ud?(e.clientY-r.top)/r.height:(e.clientX-r.left)/r.width;
   if(f<.25)ud?tapU():left();else if(f>.75)ud?tapD():right();
   else{$('#rd').classList.toggle('ui');$('#rd').classList.remove('fs')}});
-$('#rd').addEventListener('pointerdown',e=>{sx=e.target.closest('#rbar,#fsp')?null:e.clientX;sy=e.clientY});
+$('#rd').addEventListener('pointerdown',e=>{sx=e.target.closest('#rbar')?null:e.clientX;sy=e.clientY});
 $('#rd').addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
   if(sm())return;
   if(S.tp==='ud'){if(Math.abs(dy)>40&&Math.abs(dy)>Math.abs(dx)*1.5){sw=Date.now();(S.du==='d')===(dy<0)?next():prev()}}
   else if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5){sw=Date.now();if((S.dir==='l')===(dx>0))next();else prev()}});
 $('#top0').onclick=()=>{
-  if(pv===null){pv=ratio();$('#top0').textContent='元の位置';fit(0)}
+  if(pv===null){pv=ratio();$('#top0').textContent='栞の位置';fit(0)}
   else{const r=pv;pv=null;$('#top0').textContent='最初から';fit(r)}
   $('#rd').classList.remove('ui','fs')};
 $('#back').onclick=()=>{$('#rd').hidden=true;render()};
-$('#bm').onclick=()=>{
-  if(marked())S.m=S.m.filter(m=>!(m.id===cur&&Math.round(m.pos*(tot-1))===pg));
-  else S.m.push({id:cur,pos:ratio(),at:Date.now()});save();mark()};
 $('#dn').onclick=()=>{const s=B(cur);s.done=!s.done;if(s.done)s.later=false;save();mark()};
 $('#cols').addEventListener('click',e=>{if(e.target.closest('#fin')){e.stopPropagation();const s=B(cur);s.done=!s.done;if(s.done)s.later=false;save();mark()}});
-$('#fsb').onclick=()=>$('#rd').classList.toggle('fs');
-$('#fsr').oninput=e=>{S.fs=+e.target.value;save();fit(ratio())};
 addEventListener('resize',()=>{if(!$('#rd').hidden&&Z!==$('#rd').clientWidth+'x'+$('#rd').clientHeight)fit(ratio())});
 addEventListener('keydown',e=>{if($('#rd').hidden)return;if(S.tp==='ud'){if(e.key==='ArrowUp')tapU();if(e.key==='ArrowDown')tapD()}else{if(e.key==='ArrowLeft')left();if(e.key==='ArrowRight')right()}});
 if(document.fonts)document.fonts.addEventListener('loadingdone',()=>{if(!$('#rd').hidden)fit(ratio())});
