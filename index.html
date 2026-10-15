@@ -113,7 +113,7 @@ const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
-const APPV='v18',K='aozora:v2',$=s=>document.querySelector(s);
+const APPV='v19',K='aozora:v2',$=s=>document.querySelector(s);
 let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,CAPV=0,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{}}}
 delete S.m; // 廃止した、ページに付ける栞のデータ
@@ -217,7 +217,9 @@ function sentsAll(ps){
     for(let i=i0;i<p.length;i++){const ch=p[i];b+=ch;
       if(OP.includes(ch))d++;
       else if(CL.includes(ch)){d=Math.max(0,d-1);
-        if(d===0&&/[。！？!?]/.test(p[i-1]||'')){const n=p[i+1];if(!n||OP.includes(n)){put();st=false}}}
+        // 「」や（）が閉じた直後は、中が「。！？」で終わっていれば、そこで一文が終わる。ただし「と」「って」「、」が続くときは、言い回しの続きとして同じ文に含める
+        let k=i-1;while(k>=0&&CL.includes(p[k]))k--;
+        if(d===0&&/[。！？!?]/.test(p[k]||'')){const n=p[i+1];if(!n||!/[とっ、]/.test(n)){put();st=false}}}
       else if(ch==='。'&&d===0){while(p[i+1]==='）')b+=p[++i];put();st=false}}
     if(b&&d===0)put() // 括弧が閉じていれば、段落の終わりで文も終わる
   }
