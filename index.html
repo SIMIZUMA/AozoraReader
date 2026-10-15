@@ -113,7 +113,7 @@ const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
-const APPV='v17',K='aozora:v2',$=s=>document.querySelector(s);
+const APPV='v18',K='aozora:v2',$=s=>document.querySelector(s);
 let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,CAPV=0,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{}}}
 delete S.m; // 廃止した、ページに付ける栞のデータ
@@ -242,8 +242,9 @@ function fitSplit(t,C){
       if(rt)continue;
       if(++v>C)break;
       if(dp===0){hard=i+1;if(c==='、')last=i+1}}
-    const cut=last||hard||i;out.push(t.slice(0,cut));t=t.slice(cut)}
-  out.push(t);return out}
+    let cut=last||hard||i;while('）」』。、！？'.includes(t[cut]||'x'))cut++; // 閉じ括弧や句点だけが次のまとまりの先頭に残らないようにする
+    out.push(t.slice(0,cut));t=t.slice(cut)}
+  if(t||!out.length)out.push(t);return out}
 function body(b){
   const head=`<h1>${esc(b.t)}</h1><h2>${esc(b.a)}</h2>`,ps=b.x.split('\n'),n=S.ns|0,hd=p=>p[0]==='\u0001';
   if(!n)return head+ps.map(p=>hd(p)?`<p class="hd">${p.slice(1)}</p>`:`<p>${p}</p>`).join('')+FIN();
