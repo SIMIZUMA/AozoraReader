@@ -113,7 +113,7 @@ const PL=[['all','全期間'],['y','年間'],['m','月間']];
 const TEXT_BASES=['https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/','https://aozorahack.org/aozorabunko_text/'];
 const ra=b=>b.ra,rt=b=>b.rt;
 const ROWS={'あ':'ぁあぃいぅうぇえぉお','か':'かがきぎくぐけげこご','さ':'さざしじすずせぜそぞ','た':'ただちぢっつづてでとど','な':'なにぬねの','は':'はばぱひびぴふぶぷへべぺほぼぽ','ま':'まみむめも','や':'ゃやゅゆょよ','ら':'らりるれろ','わ':'ゎわゐゑをん'};
-const APPV='v19',K='aozora:v2',$=s=>document.querySelector(s);
+const APPV='v20',K='aozora:v2',$=s=>document.querySelector(s);
 let S=load(),tab='s',mode='a',q='',kn='',fo=0,sh='r',cur=null,pg=0,tot=1,W=0,MX=0,OFF=null,PW=null,CAPV=0,Z='',sw=0,swd=0,sx=null,sy=0;
 function load(){try{const v=JSON.parse(localStorage.getItem(K));if(v&&v.b)return Object.assign({th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d'},v)}catch(e){}return{fs:19,th:'auto',dir:'l',wm:'v',vw:'p',tp:'lr',du:'d',b:{}}}
 delete S.m; // 廃止した、ページに付ける栞のデータ
@@ -169,13 +169,12 @@ function vc(){
   const sg=(key,items)=>`<div class="seg">${items.map(([k,n])=>`<button data-${key}="${k}" class="${S[key]===k?'on':''}">${n}</button>`).join('')}</div>`;
   return `<h3 class="m">設定</h3>
   <div class="set"><span>文字サイズ　<b id="fsv">${S.fs}</b></span><input id="fsc" type="range" min="14" max="30" value="${S.fs}"></div>
-  <div class="set"><span>表示</span>${sg('th',[['auto','自動'],['light','ライト'],['dark','ダーク']])}</div>
+  <div class="set"><span>テーマ</span>${sg('th',[['auto','自動'],['light','ライト'],['dark','ダーク']])}</div>
   <div class="set"><span>書字方向</span>${sg('wm',[['v','縦書き'],['h','横書き']])}</div>
-  <div class="set"><span>ページ送りの操作</span>${sg('tp',[['lr','左右タップ'],['ud','上下タップ']])}</div><div class="set"><span>${S.tp==='lr'?'左右':'上下'}タップの向き</span>${S.tp==='lr'?sg('dir',[['l','左タップで進む'],['r','右タップで進む']]):sg('du',[['d','下タップで進む'],['u','上タップで進む']])}</div>
+  <div class="set"><span>ページ送りの操作</span>${sg('tp',[['lr','左右タップ'],['ud','上下タップ']])}</div><div class="set"><span>ページ送りの向き</span>${S.tp==='lr'?sg('dir',[['l','左タップで進む'],['r','右タップで進む']]):sg('du',[['d','下タップで進む'],['u','上タップで進む']])}</div>
   ${S.wm==='h'?`<div class="set"><span>横書きの表示</span>${sg('vw',[['p','ページ切替'],['s','縦スクロール1枚']])}</div>`:''}
-  <div class="set"><span>表示する文の量</span><label class="num"><input id="ns" type="number" inputmode="numeric" min="0" max="99" value="${S.ns||''}" placeholder="制限なし"><b>文</b></label><small class="hint">空欄または0で制限なし。「。」までを1文と数え、「」の中のセリフと（）の中は、「。」があっても、段落をまたいでも、丸ごと1文として数えます。</small></div>
-  <p class="hint">作品は青空文庫(aozora.gr.jp)の公開データを利用しています。</p>
-  <p class="hint">作品一覧: ${CAT==='ok'?BOOKS.length.toLocaleString()+'作品(更新 '+BUILT+')':'未読み込み'} / 人気順: ${POP.length?'あり':'なし'} / アプリ ${APPV}</p>`}
+  <div class="set"><span>表示する文の量</span><label class="num"><input id="ns" type="number" inputmode="numeric" min="0" max="99" value="${S.ns||''}" placeholder="制限なし"><b>文</b></label></div>
+  <p class="hint">作品は青空文庫(aozora.gr.jp)の公開データを利用しています。<br>作品数 ${CAT==='ok'?BOOKS.length.toLocaleString()+'作品':'未読み込み'} / アプリ ${APPV}</p>`}
 function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   $('#view').innerHTML=tab==='s'?vs():tab==='h'?vh():vc();placeInd()}
